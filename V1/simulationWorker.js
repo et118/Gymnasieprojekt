@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { CelestialBody } from './CelestialBody';
 const G = 6.6743e-11;
 const clock = new THREE.Clock();
 const timeFactor = 1000000;

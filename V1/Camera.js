@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 export class Camera {
-    constructor() {
-        this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    constructor(camera) {
+        this.camera = camera;
         this.cameraMovement = new THREE.Vector3(0,0,0);
         this.cameraSpeed = 10;
         this.mousePosition = new THREE.Vector2(0,0);

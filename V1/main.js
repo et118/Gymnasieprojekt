@@ -5,16 +5,17 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { RenderPass } from 'three/examples/jsm/Addons.js';
 import { AfterimagePass } from 'three/examples/jsm/Addons.js';
 import { EffectComposer } from 'three/examples/jsm/Addons.js';
-
+import * as SolarSystem from './SolarSystem.js'
 /*
     https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation    //For the asteroid fields
     https://en.wikipedia.org/wiki/Fast_multipole_method
 */
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const camera = new Camera(perspectiveCamera);
 const renderScenePass = new RenderPass(scene,camera.camera);
-const afterImagePass = new AfterimagePass();
+//const afterImagePass = new AfterimagePass();
 const trailComposer = new EffectComposer(renderer);
 const clock = new THREE.Clock();
 const stats = new Stats();
@@ -23,56 +24,68 @@ function initThreeJS() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.autoClear = false;
     renderer.clear();
-    afterImagePass.uniforms["damp"].value = 0.975;
+    //afterImagePass.uniforms["damp"].value = 0.975;
     trailComposer.addPass(renderScenePass);
-    trailComposer.addPass(afterImagePass);
+    //trailComposer.addPass(afterImagePass);
     stats.showPanel(0);
-    camera.position.y = 15; //looking downwards
-    camera.rotateX(-Math.PI/2);
+    perspectiveCamera.position.y = 200;
+    perspectiveCamera.rotateX(-Math.PI/2); //looking downwards
     document.body.appendChild(renderer.domElement);
-
+    document.body.appendChild(stats.dom);
+    window.addEventListener('resize', onWindowResize, false);
 }
 initThreeJS();
 
-window.addEventListener('resize', onWindowResize, false);
 function onWindowResize() {
     renderer.height = window.innerHeight;
     renderer.width = window.innerWidth;
     renderer.setSize(window.innerWidth,window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    perspectiveCamera.aspect = window.innerWidth / window.innerHeight;
+    perspectiveCamera.updateProjectionMatrix();
+}
+
+function sendBodiesToWorker(bodies, worker) {
+    var rawPhysicsData = [];
+    bodies.forEach(body => {
+        rawPhysicsData.push(body.getPhysicsData());
+    });
+    worker.postMessage([0,rawPhysicsData]);
 }
 
 const simulationWorker = new Worker("simulationWorker.js", {type:"module"});
-var bodies = [new CelestialBody(0, 0, 0, 2, 1.9884e30, new THREE.Vector3(0,0,0), 0xf0e816),
-              new CelestialBody(150e9, 0, 0, 1, 5.97219e24, new THREE.Vector3(0,0,30000), 0x1541ed)];
-var meshes = [new THREE.Mesh(new THREE.SphereGeometry(bodies[0].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[0].color, wireframe:true})),new THREE.Mesh(new THREE.SphereGeometry(bodies[1].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[1].color, wireframe:true}))];
-simulationWorker.postMessage([0,bodies]);
+var bodies = SolarSystem.createCelestialBodies(scene);
+//var bodies = [new CelestialBody(0, 0, 0, 2, 1.9884e30, new THREE.Vector3(0,0,0), 0xf0e816),
+//              new CelestialBody(150e9, 0, 0, 1, 5.97219e24, new THREE.Vector3(0,0,30000), 0x1541ed)];
+
+//var meshes = [new THREE.Mesh(new THREE.SphereGeometry(bodies[0].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[0].color, wireframe:true})),new THREE.Mesh(new THREE.SphereGeometry(bodies[1].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[1].color, wireframe:true}))];
+sendBodiesToWorker(bodies, simulationWorker);
 simulationWorker.onmessage = (e) => {
-    bodies = e.data;
+    for(var i = 0; i < e.data.length; i++) {
+        bodies[i].setPhysicsData(e.data[i]);
+    }
 }
 
-
-var bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(100,100,100,100), new THREE.MeshBasicMaterial( {color:0xffffff, wireframe:true}))
+var bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(10000,10000,1000,1000), new THREE.MeshBasicMaterial( {color:0xffffff, wireframe:true}))
 bottomPlane.rotateOnAxis(new THREE.Vector3(1,0,0),Math.PI/2);
 scene.add(bottomPlane);
-scene.add(meshes[0]);
-scene.add(meshes[1]);
+//scene.add(meshes[0]);
+//scene.add(meshes[1]);
 function render() {
     stats.begin();
+    var deltaTime = clock.getDelta();
     requestAnimationFrame(render);
-    for(var i = 0; i < bodies.length; i++) {
-        meshes[i].position.set(bodies[i].position.x/15e9,bodies[i].position.y/15e9,bodies[i].position.z/15e9);
-        
-    }
+    //for(var i = 0; i < bodies.length; i++) {
+    //    meshes[i].position.set(bodies[i].position.x/15e9,bodies[i].position.y/15e9,bodies[i].position.z/15e9);   
+    //}
+    camera.move(deltaTime);
 
     simulationWorker.postMessage([1]);
     renderer.clear();
     //camera.layers.set(1);
     //trailComposer.render(scene,camera);
     renderer.clearDepth();
-    camera.layers.set(0);
-    renderer.render(scene,camera);
+    perspectiveCamera.layers.set(0);
+    renderer.render(scene,perspectiveCamera);
 
     //var deltaTime = clock.getDelta();
     //camera.move(deltaTime);
