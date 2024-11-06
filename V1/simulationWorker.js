@@ -43,6 +43,7 @@ var channel = new MessageChannel();
 function process() {
 
     var deltaTime = clock.getDelta();
+    if(deltaTime > 0.001) deltaTime = 0.001; //To prevent time leaps, for example when tabbing out sometimes
     time += deltaTime;
     counter += 1;
     if(time >= 1) {
@@ -54,6 +55,7 @@ function process() {
     bodies.forEach(sourceBody => {
         bodies.forEach(targetBody => {
             if(targetBody == sourceBody) return;
+            //Den andra targetBody loopen borde minska i med 1 per gång för att halvera beräkningarna.
             var F = (G*sourceBody.mass*targetBody.mass)/Math.pow(distanceBetween(targetBody.position,sourceBody.position),2);
             sourceBody.velocity = vectorAdd(sourceBody.velocity,new THREE.Vector3().subVectors(targetBody.position,sourceBody.position).normalize().multiplyScalar((F/sourceBody.mass)*deltaTime));
             });

@@ -9,3 +9,8 @@ Check the API so that every time the program starts it grabs the current positio
 https://ssd-api.jpl.nasa.gov/doc/horizons.html
 
 https://ssd.jpl.nasa.gov/tools/sbdb_query.html#!#results 
+
+
+SPK ids (IAU number)
+
+https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%27499%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&CENTER=%27500@0%27&START_TIME=%272024-01-01%2000:00%27&STOP_TIME=%272024-01-01%2000:01%27&STEP_SIZE=%271%20min%27&VEC_TABLE=%272%27&VEC_LABELS=%27NO%27&CSV_FORMAT=%27YES%27

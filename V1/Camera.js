@@ -9,16 +9,20 @@ export class Camera {
         this.rightClickPressed = false;
         this.ePressed = false;
         this.qPressed = false;
+        this.shiftKey = false;
+        this.ctrlKey = false;
         window.addEventListener("keydown", (event) => {
-            if(event.key == "w") this.cameraMovement.z = -1;
-            if(event.key == "a") this.cameraMovement.x = -1;
-            if(event.key == "s") this.cameraMovement.z = 1;
-            if(event.key == "d") this.cameraMovement.x = 1;
+            if(event.key == "w") {this.cameraMovement.z = -1; event.preventDefault();}
+            if(event.key == "a") {this.cameraMovement.x = -1; event.preventDefault();}
+            if(event.key == "s") {this.cameraMovement.z = 1; event.preventDefault();}
+            if(event.key == "d") {this.cameraMovement.x = 1; event.preventDefault();}
             if(event.key == " ") this.cameraMovement.y = 1;
             if(event.key == "c") this.cameraMovement.y = -1;
             if(event.key == "e") this.ePressed = true;
             if(event.key == "q") this.qPressed = true;
-        });
+            this.shiftKey = event.shiftKey;
+            this.ctrlKey = event.ctrlKey;
+        }, true);
         window.addEventListener("keyup", (event) => {
             if(event.key == "w" && this.cameraMovement.z == -1) this.cameraMovement.z = 0;
             if(event.key == "a" && this.cameraMovement.x == -1) this.cameraMovement.x = 0;
@@ -63,9 +67,9 @@ export class Camera {
     }
 
     move(deltaTime) {
-        this.camera.translateX(this.cameraSpeed * this.cameraMovement.x * deltaTime);
-        this.camera.translateY(this.cameraSpeed * this.cameraMovement.y * deltaTime);
-        this.camera.translateZ(this.cameraSpeed * this.cameraMovement.z * deltaTime);
+        this.camera.translateX(this.cameraSpeed * this.cameraMovement.x * deltaTime * (this.shiftKey == true ? 10 : 1) * (this.ctrlKey == true ? 50 : 1));
+        this.camera.translateY(this.cameraSpeed * this.cameraMovement.y * deltaTime * (this.shiftKey == true ? 10 : 1) * (this.ctrlKey == true ? 50 : 1));
+        this.camera.translateZ(this.cameraSpeed * this.cameraMovement.z * deltaTime * (this.shiftKey == true ? 10 : 1) * (this.ctrlKey == true ? 50 : 1));
         if((this.lastMousePosition.x != this.mousePosition.x || this.lastMousePosition.y != this.mousePosition.y) && this.rightClickPressed) {
             //camera.getWorldDirection(new THREE.Vector3()).applyAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2)
             this.camera.rotateOnAxis(new THREE.Vector3(0,1,0), (this.lastMousePosition.x - this.mousePosition.x)*0.01);

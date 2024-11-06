@@ -12,7 +12,7 @@ import * as SolarSystem from './SolarSystem.js'
 */
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 50000 );
 const camera = new Camera(perspectiveCamera);
 const renderScenePass = new RenderPass(scene,camera.camera);
 //const afterImagePass = new AfterimagePass();
@@ -67,7 +67,13 @@ simulationWorker.onmessage = (e) => {
 
 var bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(10000,10000,1000,1000), new THREE.MeshBasicMaterial( {color:0xffffff, wireframe:true}))
 bottomPlane.rotateOnAxis(new THREE.Vector3(1,0,0),Math.PI/2);
-scene.add(bottomPlane);
+var xHelperArrow = new THREE.ArrowHelper(new THREE.Vector3(10000,0,0),new THREE.Vector3(10,0,0), 10000, 0xf51e0f); //RED
+var yHelperArrow = new THREE.ArrowHelper(new THREE.Vector3(0,10000,0),new THREE.Vector3(10,0,0), 10000, 0x4cf50f); //GREEN
+var zHelperArrow = new THREE.ArrowHelper(new THREE.Vector3(0,0,10000),new THREE.Vector3(10,0,0), 10000, 0x0f4cf5); //BLUE
+//scene.add(bottomPlane);
+scene.add(xHelperArrow);
+scene.add(yHelperArrow);
+scene.add(zHelperArrow);
 //scene.add(meshes[0]);
 //scene.add(meshes[1]);
 function render() {

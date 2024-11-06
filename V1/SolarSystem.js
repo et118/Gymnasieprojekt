@@ -1,12 +1,35 @@
 import { CelestialBody } from "./CelestialBody";
 
+//Taken at timestamp 2024-11-04 00:00
 export function createCelestialBodies(scene) {
-    var bodies = [
-        new CelestialBody(0, 0, 0, 695.7e6, 1988400e24, 0, 0, 0, 0xf0e816, "Sun"), ////https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html 
-        new CelestialBody(149e9, 0, 0, 6.371e6, 5.9722e24, 0, 0, 29780, 0x1541ed, "Earth") //https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html 
+    let bodies = [
+        new CelestialBody(-9.182171804241335E+05, -6.997644778030103E+05, 2.783113247122159E+04, 695700E+03, 1988410E+24, 1.187308125711035E-02, -7.508535315653078E-03, -1.834263203359826E-04, 0xf0e816, "Sun"),
+        new CelestialBody(2.138418360649748E+07, -6.362234166216181E+07, -7.159903519350063E+06, 2439.4E+03, 3.302E+23, 3.616467940390012E+01, 1.873081620888532E+01, -1.784875239609568E+00, 0xe7e8ec, "Mercury"),
+        new CelestialBody(8.090156187452155E+07, -7.238773823901479E+07, -5.677786971194245E+06, 6051.84E+03, 48.685E+23, 2.286856341615997E+01, 2.619946432328162E+01, -9.591151141072860E-01, 0xa57c1b, "Venus"),
+        new CelestialBody(1.098273745975660E+08, 9.803836643332981E+07, 2.202688888739049E+04, 6371.01E+03, 5.97219E+24, -2.030821619237393E+01, 2.211933292884772E+01, -8.655029386002155E-04, 0x287ab8, "Earth"),
+        new CelestialBody(3.619486631939897E+07, 2.276755743739845E+08, 3.903240198865980E+06, 3389.92E+03, 6.4171E+23, -2.298839105757450E+01, 5.938044231385763E+00, 6.885075426653673E-01, 0x451804, "Mars"),
+        new CelestialBody(2.212442763393372E+08, 7.235104292207288E+08, -7.950992068377286E+06, 69911E+03, 1.89818722E+27, -1.264456234718480E+01, 4.442373935156090E+00, 2.643811109223229E-01, 0xf2cb5e, "Jupiter"),
+        new CelestialBody(1.407497333638348E+09, -3.120409414921354E+08, -5.061385336536442E+07, 58232E+03, 5.6834E+26, 1.554212020897643E+00, 9.411664079037129E+00, -2.260396099539417E-01, 0xe2bf7d, "Saturn"),
+        new CelestialBody(1.688454490356853E+09, 2.389020281301280E+09, -1.300143428258669E+07, 25362E+03, 86.813E+24, -5.611308014029813E+00, 3.613013182460271E+00, 8.589333931158905E-02, 0x93cdf1, "Uranus"),
+        new CelestialBody(4.468629936389881E+09, -1.229985370203823E+08, -1.004513106100126E+08, 24624E+03, 102.409E+24, 1.134012337597301E-01, 5.465819279606301E+00, -1.146132647213456E-01, 0x4b70dd, "Neptune")
+        //new CelestialBody(0, 0, 0, 695.7e6, 1988400e24, 0, 0, 0, 0xf0e816, "Sun"), 
+        //new CelestialBody(149e9, 0, 0, 6.371e6, 5.9722e24, 0, 0, 29780, 0x1541ed, "Earth") 
     ];
     bodies.forEach(body => {
         body.addToScene(scene);
     });
     return bodies;
 }
+/*getCelestialBodyFromHorizons(499);
+function getCelestialBodyFromHorizons(target) {
+    let body;
+    let url = "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%27TARGETBODY%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&CENTER=%27500@0%27&START_TIME=%27STARTTIME%27&STOP_TIME=%27ENDTIME%27&STEP_SIZE=%271%20min%27&VEC_TABLE=%272%27&VEC_LABELS=%27NO%27&CSV_FORMAT=%27YES%27";
+    url = url.replace("TARGETBODY", target);
+    url = url.replace("STARTTIME", "2024-01-01%2000:00");
+    url = url.replace("ENDTIME", "2024-01-01%2000:01");
+    fetch(url, {mode:"no-cors"})
+              .then((response) => response.json())
+              .then((json) => {
+                console.log(json);
+              });
+}*/
