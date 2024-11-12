@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 const G = 6.6743e-11;
 const clock = new THREE.Clock();
-const timeFactor = 1000000;
+const timeFactor = 2000000;
 var bodies = []
 
 onmessage = (e) => {
@@ -64,7 +64,8 @@ function process() {
     bodies.forEach(body => {
         body.position = vectorAdd(body.position,vectorMultiply(body.velocity,deltaTime));
     });
-    channel.port2.postMessage(null);
+    setTimeout(process,0);
+    //channel.port2.postMessage(null);// TODO: Add back for simulation quality
 }
 // https://stackoverflow.com/questions/18826570/settimeout0-vs-window-postmessage-vs-messageport-postmessage 
 channel.port1.onmessage = function (ev) {

@@ -1,0 +1,38 @@
+Date : 2024-11-12 08:53:00
+Directory : c:\Users\pekda\Programming\Gymnasieprojekt\V1
+Total : 10 files,  1158 codes, 206 comments, 55 blanks, all 1419 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JSON       |          2 |        866 |          0 |          2 |        868 |
+| JavaScript |          5 |        256 |        206 |         41 |        503 |
+| HTML       |          1 |         13 |          0 |          0 |         13 |
+| Python     |          1 |         12 |          0 |          3 |         15 |
+| Markdown   |          1 |         11 |          0 |          9 |         20 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                   | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                      |         10 |      1,158 |        206 |         55 |      1,419 |
++------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                               | language   | code       | comment    | blank      | total      |
++------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\Camera.js                | JavaScript |         37 |         78 |         10 |        125 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\CelestialBody.js         | JavaScript |         39 |          5 |          6 |         50 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\SolarSystem.js           | JavaScript |         18 |         16 |          1 |         35 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\exportCelestialBodies.py | Python     |         12 |          0 |          3 |         15 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\index.html               | HTML       |         13 |          0 |          0 |         13 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\main.js                  | JavaScript |         97 |        104 |         16 |        217 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\notes.md                 | Markdown   |         11 |          0 |          9 |         20 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\package-lock.json        | JSON       |        858 |          0 |          1 |        859 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\package.json             | JSON       |          8 |          0 |          1 |          9 |
+| c:\Users\pekda\Programming\Gymnasieprojekt\V1\simulationWorker.js      | JavaScript |         65 |          3 |          8 |         76 |
+| Total                                                                  |            |      1,158 |        206 |         55 |      1,419 |
++------------------------------------------------------------------------+------------+------------+------------+------------+------------+

@@ -10,15 +10,18 @@ import * as SolarSystem from './SolarSystem.js'
     https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation    //For the asteroid fields
     https://en.wikipedia.org/wiki/Fast_multipole_method
 */
+//TODO Gui with lil-gui
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 50000 );
-const camera = new Camera(perspectiveCamera);
+const camera = new Camera(perspectiveCamera, renderer);
 const renderScenePass = new RenderPass(scene,camera.camera);
 //const afterImagePass = new AfterimagePass();
 const trailComposer = new EffectComposer(renderer);
 const clock = new THREE.Clock();
 const stats = new Stats();
+const raycaster = new THREE.Raycaster();
+raycaster.layers.enableAll();
 
 function initThreeJS() {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -28,7 +31,8 @@ function initThreeJS() {
     trailComposer.addPass(renderScenePass);
     //trailComposer.addPass(afterImagePass);
     stats.showPanel(0);
-    perspectiveCamera.position.y = 200;
+    perspectiveCamera.position.y = 5000;
+    perspectiveCamera.position.x = 1000;
     perspectiveCamera.rotateX(-Math.PI/2); //looking downwards
     document.body.appendChild(renderer.domElement);
     document.body.appendChild(stats.dom);
@@ -39,9 +43,10 @@ initThreeJS();
 function onWindowResize() {
     renderer.height = window.innerHeight;
     renderer.width = window.innerWidth;
+    camera.camera.aspect = window.innerWidth / window.innerHeight;
+    camera.camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth,window.innerHeight);
-    perspectiveCamera.aspect = window.innerWidth / window.innerHeight;
-    perspectiveCamera.updateProjectionMatrix();
+    
 }
 
 function sendBodiesToWorker(bodies, worker) {
@@ -76,13 +81,41 @@ scene.add(yHelperArrow);
 scene.add(zHelperArrow);
 //scene.add(meshes[0]);
 //scene.add(meshes[1]);
+
+let targetName = "";
+window.addEventListener("pointerup", (event) => {
+    
+    let pointer = new THREE.Vector2();
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    let meshes = [];
+    bodies.forEach(body => {
+        body.mesh.updateWorldMatrix();
+        body.selectMesh.updateWorldMatrix();
+        meshes.push(body.mesh);
+        meshes.push(body.selectMesh);
+    });
+
+    raycaster.setFromCamera(pointer,camera.camera);
+    let intersects = raycaster.intersectObjects(meshes, false);
+    if(intersects.length > 0) {
+        targetName = intersects[0].object.name;
+    } //TODO Make sure there is a pointerdown event first
+});
+
 function render() {
     stats.begin();
     var deltaTime = clock.getDelta();
     requestAnimationFrame(render);
-    //for(var i = 0; i < bodies.length; i++) {
-    //    meshes[i].position.set(bodies[i].position.x/15e9,bodies[i].position.y/15e9,bodies[i].position.z/15e9);   
-    //}
+    for(var i = 0; i < bodies.length; i++) {
+        bodies[i].draw(camera);
+    }
+    if(targetName != "") {
+        camera.setTarget(bodies.find((b) => b.name == targetName));
+        targetName = "";
+    }
+
     camera.move(deltaTime);
 
     simulationWorker.postMessage([1]);
