@@ -113,9 +113,7 @@ function render() {
     }
     if(targetName != "") {
         camera.setTarget(bodies.find((b) => b.name == targetName));
-        targetName = "";
     }
-
     camera.move(deltaTime);
 
     simulationWorker.postMessage([1]);
