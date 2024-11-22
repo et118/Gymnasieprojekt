@@ -1,14 +1,28 @@
 *******************************************************************************
- Revised: Sep 20, 2024            Jarnsaxa / (Saturn)                       650
+ Revised: Apr 03, 2024              Styx / (Pluto)                          905
 
- Newly discovered irregular Saturnian satellite
-*******************************************************************************
+ Pre-computed solution PLU060/DE440. Fit to post New Horizons encounter and
+ Gaia data through 2023. For discussion, see ...
+
+ M. Brozovic, R. A. Jacobson (2024) \Post-New Horizons orbits and masses
+ for the satellites of Pluto\. AJ (in press).
+
+ Satellite General Physical Properties (PLU060):
+  GM (km^3/s^2)         = 0.0000405       Density (g cm^-3)    =     
+  Radius (km)           = 5.2 +- 1.0      Geometric alebdo     =
+  Mass (10^21 kg )      =                 Hill Sphere rad., km =
+  Surface grav. (cm/s^2)=                 Escape velocity, km/s=
+
+ Satellite mean orbital data (2000-Jan-01.5 TDB, planet-centered equatorial):
+  Semi-major axis, a (km) = 43200.        Orbital period, days  = 20.16 
+  Eccentricity, e         = 0.025         Inclination, deg.     = 0.0
+******************************************************************************
 
 
 *******************************************************************************
-Ephemeris / API_USER Fri Nov 22 04:58:09 2024 Pasadena, USA      / Horizons
+Ephemeris / API_USER Fri Nov 22 13:31:45 2024 Pasadena, USA      / Horizons
 *******************************************************************************
-Target body name: Jarnsaxa (650)                  {source: sat454_merged_DE440}
+Target body name: Styx (905)                      {source: plu060_merged}
 Center body name: Solar System Barycenter (0)     {source: DE441}
 Center-site name: BODY CENTER
 *******************************************************************************
@@ -28,8 +42,8 @@ Reference frame : Ecliptic of J2000.0
             JDTDB,            Calendar Date (TDB),                      X,                      Y,                      Z,                     VX,                     VY,                     VZ,
 **************************************************************************************************************************************************************************************************
 $$SOE
-2460310.500000000, A.D. 2024-Jan-01 00:00:00.0000,  1.362134691698221E+09, -5.472852552713261E+08, -4.301337180348086E+07,  3.972429896642762E+00,  7.877841875053019E+00,  9.217880408014212E-02,
-2460310.500694444, A.D. 2024-Jan-01 00:01:00.0000,  1.362134930043757E+09, -5.472847826008526E+08, -4.301336627275684E+07,  3.972421302272361E+00,  7.877840572745436E+00,  9.217866208730152E-02,
+2460310.500000000, A.D. 2024-Jan-01 00:00:00.0000,  2.573386791393172E+09, -4.539005324962198E+09, -2.586377824871449E+08,  4.980059042384998E+00,  1.567263956326745E+00, -1.635147367092328E+00,
+2460310.500694444, A.D. 2024-Jan-01 00:01:00.0000,  2.573387090196579E+09, -4.539005230926977E+09, -2.586378805967588E+08,  4.980054483633986E+00,  1.567243404034914E+00, -1.635173096854503E+00,
 $$EOE
 **************************************************************************************************************************************************************************************************
  
