@@ -18,3 +18,6 @@ https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%27499%27&OBJ_DATA
 Om man använder sphere of influence så kan man approximata orbits
 mycket enklare, men det kommer till kosten av att varje simulation
 bara blir ett 2-body-system. 
+
+Use the eccentricity, inclination, axis and longitude thingy to make
+the initial orbit path when the program starts
