@@ -2,15 +2,15 @@ import * as THREE from 'three';
 
 export class CelestialBody {
     constructor(x, y, z, radius, mass, velocityX, velocityY, velocityZ, color, name) {
-        this.position = {x: x*1000, y: z*1000, z: y*1000};
+        this.position = {x: x, y: y, z: z};
         this.radius = radius;
         this.mass = mass;
-        this.velocity = {x: velocityX*1000, y: velocityZ*1000, z: velocityY*1000};
+        this.velocity = {x: velocityX, y: velocityY, z: velocityZ};
         this.color = color;
         this.name = name;
-        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(10/*radius/1e9TODO: Realistic size (but things might get too small then) */, 32, 16), new THREE.MeshBasicMaterial({color:color, wireframe:true, side:THREE.DoubleSide}));
-        this.mesh.position.set(this.position.x/1e9,this.position.y/1e9,this.position.z/1e9);
-        this.ringMesh = new THREE.Mesh(new THREE.RingGeometry(47,50,32), new THREE.MeshBasicMaterial({color:0xffff00}));
+        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(radius/1e9/*radius/1e9TODO: Realistic size (but things might get too small then) */, 32, 16), new THREE.MeshBasicMaterial({color:color, wireframe:true, side:THREE.DoubleSide}));
+        this.mesh.position.set(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9); //Swapping z and y is intentional
+        this.ringMesh = new THREE.Mesh(new THREE.RingGeometry(47,50,32), new THREE.MeshBasicMaterial({color: name == "Jupiter" ? 0xff0000 : 0xffff00}));
         this.selectMesh = new THREE.Mesh(new THREE.CircleGeometry(50,8));
         //this.trailmesh = new THREE.Mesh(new THREE.SphereGeometry(radius/3,32,16), new THREE.MeshBasicMaterial({color:color}));
         //this.trailmesh.layers.set(1);
@@ -27,7 +27,7 @@ export class CelestialBody {
         this.position = data.position;
         this.mass = data.mass;
         this.velocity = data.velocity;
-        this.mesh.position.set(this.position.x/1e9,this.position.y/1e9,this.position.z/1e9);
+        this.mesh.position.set(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9);
     }
 
     addToScene(scene) {

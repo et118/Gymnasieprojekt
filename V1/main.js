@@ -13,7 +13,7 @@ import * as SolarSystem from './SolarSystem.js'
 //TODO Gui with lil-gui
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 50000 );
+const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 50000 );
 const camera = new Camera(perspectiveCamera, renderer);
 const renderScenePass = new RenderPass(scene,camera.camera);
 //const afterImagePass = new AfterimagePass();
@@ -31,7 +31,7 @@ function initThreeJS() {
     trailComposer.addPass(renderScenePass);
     //trailComposer.addPass(afterImagePass);
     stats.showPanel(0);
-    perspectiveCamera.position.y = 5000;
+    perspectiveCamera.position.z = 5000;
     perspectiveCamera.position.x = 1000;
     perspectiveCamera.rotateX(-Math.PI/2); //looking downwards
     document.body.appendChild(renderer.domElement);
@@ -101,6 +101,7 @@ window.addEventListener("pointerup", (event) => {
     let intersects = raycaster.intersectObjects(meshes, false);
     if(intersects.length > 0) {
         targetName = intersects[0].object.name;
+        console.log(targetName);
     } //TODO Make sure there is a pointerdown event first
 });
 

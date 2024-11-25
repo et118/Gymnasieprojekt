@@ -43,7 +43,6 @@ var channel = new MessageChannel();
 function process() {
 
     var deltaTime = clock.getDelta();
-    if(deltaTime > 0.001) deltaTime = 0.001; //To prevent time leaps, for example when tabbing out sometimes
     time += deltaTime;
     counter += 1;
     if(time >= 1) {
@@ -51,6 +50,8 @@ function process() {
         counter = 0;
         time = 0;
     }
+    if(deltaTime > 0.0001) deltaTime = 0.0001; //To prevent time leaps, for example when tabbing out sometimes
+    
     deltaTime *= timeFactor;
     bodies.forEach(sourceBody => {
         bodies.forEach(targetBody => {
@@ -65,7 +66,7 @@ function process() {
         body.position = vectorAdd(body.position,vectorMultiply(body.velocity,deltaTime));
     });
     setTimeout(process,0);
-    //channel.port2.postMessage(null);// TODO: Add back for simulation quality
+    //channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
 }
 // https://stackoverflow.com/questions/18826570/settimeout0-vs-window-postmessage-vs-messageport-postmessage 
 channel.port1.onmessage = function (ev) {
