@@ -21,3 +21,5 @@ bara blir ett 2-body-system.
 
 Use the eccentricity, inclination, axis and longitude thingy to make
 the initial orbit path when the program starts
+
+Once in a while recalculate distance to the major planets to re-establish group id's

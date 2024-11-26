@@ -2,6 +2,7 @@ import * as THREE from 'three';
 const G = 6.6743e-11;
 const clock = new THREE.Clock();
 const timeFactor = 2000000;
+const maximumTimestep = 0.0001
 var bodies = []
 
 onmessage = (e) => {
@@ -42,31 +43,34 @@ var channel = new MessageChannel();
 
 function process() {
 
-    var deltaTime = clock.getDelta();
+    let deltaTime = clock.getDelta();
     time += deltaTime;
     counter += 1;
     if(time >= 1) {
-        console.log(counter);
+        console.log("TargetSpeed: " + timeFactor + "x    CPU Speed: " + ((maximumTimestep / (time / counter)) > 1 ? timeFactor + "x " + Math.round((maximumTimestep / (time / counter))*100) + "% simulation quality" : (maximumTimestep / (time / counter)) * timeFactor + "x"));
         counter = 0;
         time = 0;
     }
-    if(deltaTime > 0.0001) deltaTime = 0.0001; //To prevent time leaps, for example when tabbing out sometimes
+    if(deltaTime > maximumTimestep) deltaTime = maximumTimestep; //To prevent time leaps, for example when tabbing out sometimes or when overloaded
     
     deltaTime *= timeFactor;
-    bodies.forEach(sourceBody => {
-        bodies.forEach(targetBody => {
-            if(targetBody == sourceBody) return;
-            //Den andra targetBody loopen borde minska i med 1 per gång för att halvera beräkningarna.
-            var F = (G*sourceBody.mass*targetBody.mass)/Math.pow(distanceBetween(targetBody.position,sourceBody.position),2);
-            sourceBody.velocity = vectorAdd(sourceBody.velocity,new THREE.Vector3().subVectors(targetBody.position,sourceBody.position).normalize().multiplyScalar((F/sourceBody.mass)*deltaTime));
-            });
-    });
+    for(let i = 0; i < bodies.length - 1; i++) {
+        for(let j = i + 1; j < bodies.length; j++) {
+            let sourceBody = bodies[j];
+            let targetBody = bodies[i];
+            if(!targetBody.majorCelestial && targetBody.groupID != sourceBody.groupID) continue;
+            let F = (G*sourceBody.mass*targetBody.mass)/Math.pow(distanceBetween(targetBody.position,sourceBody.position),2);
+            let direction = new THREE.Vector3().subVectors(targetBody.position,sourceBody.position).normalize();
+            sourceBody.velocity = vectorAdd(sourceBody.velocity,direction.multiplyScalar((F/sourceBody.mass)*deltaTime));
+            targetBody.velocity = vectorAdd(targetBody.velocity,direction.multiplyScalar((F/targetBody.mass)*deltaTime*-1));
+        };
+    }
 
     bodies.forEach(body => {
         body.position = vectorAdd(body.position,vectorMultiply(body.velocity,deltaTime));
     });
-    setTimeout(process,0);
-    //channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
+    //setTimeout(process,0);
+    channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
 }
 // https://stackoverflow.com/questions/18826570/settimeout0-vs-window-postmessage-vs-messageport-postmessage 
 channel.port1.onmessage = function (ev) {
