@@ -21,6 +21,11 @@ export class CelestialBody {
         this.selectMesh.name = name;
     }
 
+    updateRadius(radius) {
+        this.mesh.scale.multiplyScalar(radius / this.radius);
+        this.radius = radius;
+    }
+
     getPhysicsData() {
         return {position: this.position, mass: this.mass, velocity: this.velocity, groupID: this.groupID, majorCelestial: this.majorCelestial};
     }
@@ -40,15 +45,28 @@ export class CelestialBody {
         //scene.add(this.selectMesh);
     }
 
-    draw(camera) {
+    draw(camera, groupID) {
         //this.mesh.position.set(this.position.x/15e9,this.position.y/15e9,this.position.z/15e9);
         //this.trailmesh.position.set(this.position.x/15e9,this.position.y/15e9,this.position.z/15e9);
-        this.ringMesh.setRotationFromQuaternion(camera.camera.quaternion);
-        var scale = this.mesh.position.distanceTo(camera.camera.position) / 1000;
-        this.ringMesh.scale.set(scale, scale, scale);
-        this.ringMesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
-        this.selectMesh.position.set(this.ringMesh.position.x, this.ringMesh.position.y, this.ringMesh.position.z);
-        this.selectMesh.scale.set(scale, scale, scale);
-        this.selectMesh.setRotationFromQuaternion(camera.camera.quaternion);
+        if(this.majorCelestial || this.groupID == groupID) {
+            this.ringMesh.visible = true;
+            this.selectMesh.visible = true;
+            this.ringMesh.setRotationFromQuaternion(camera.camera.quaternion);
+            var scale = this.mesh.position.distanceTo(camera.camera.position) / 1000;
+            this.ringMesh.scale.set(scale, scale, scale);
+            this.ringMesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
+            if(!this.majorCelestial) {
+                this.ringMesh.material.color.setHex(0x0000ff);
+            } else {
+                this.ringMesh.material.color.setHex(0xffff00);
+            }
+            this.selectMesh.position.set(this.ringMesh.position.x, this.ringMesh.position.y, this.ringMesh.position.z);
+            this.selectMesh.scale.set(scale, scale, scale);
+            this.selectMesh.setRotationFromQuaternion(camera.camera.quaternion);    
+        } else {
+            this.ringMesh.visible = false;
+            this.selectMesh.visible = false;
+            this.selectMesh.scale.set(0,0,0);
+        }
     }
 }

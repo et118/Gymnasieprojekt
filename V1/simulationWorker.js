@@ -47,7 +47,7 @@ function process() {
     time += deltaTime;
     counter += 1;
     if(time >= 1) {
-        console.log("TargetSpeed: " + timeFactor + "x    CPU Speed: " + ((maximumTimestep / (time / counter)) > 1 ? timeFactor + "x " + Math.round((maximumTimestep / (time / counter))*100) + "% simulation quality" : (maximumTimestep / (time / counter)) * timeFactor + "x"));
+        //console.log("TargetSpeed: " + timeFactor + "x    CPU Speed: " + ((maximumTimestep / (time / counter)) > 1 ? timeFactor + "x " + Math.round((maximumTimestep / (time / counter))*100) + "% simulation quality" : (maximumTimestep / (time / counter)) * timeFactor + "x"));
         counter = 0;
         time = 0;
     }
@@ -69,8 +69,8 @@ function process() {
     bodies.forEach(body => {
         body.position = vectorAdd(body.position,vectorMultiply(body.velocity,deltaTime));
     });
-    //setTimeout(process,0);
-    channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
+    setTimeout(process,0);
+    //channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
 }
 // https://stackoverflow.com/questions/18826570/settimeout0-vs-window-postmessage-vs-messageport-postmessage 
 channel.port1.onmessage = function (ev) {

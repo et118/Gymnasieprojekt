@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { CelestialBody } from './CelestialBody';
+import { GUI } from "lil-gui";
 import { Camera } from './Camera';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { RenderPass } from 'three/examples/jsm/Addons.js';
@@ -11,12 +12,14 @@ import * as SolarSystem from './SolarSystem.js'
     https://en.wikipedia.org/wiki/Fast_multipole_method
 */
 //TODO Gui with lil-gui
+
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 50000 );
 const camera = new Camera(perspectiveCamera, renderer);
 const renderScenePass = new RenderPass(scene,camera.camera);
 //const afterImagePass = new AfterimagePass();
+const gui = new GUI();
 const trailComposer = new EffectComposer(renderer);
 const clock = new THREE.Clock();
 const stats = new Stats();
@@ -82,9 +85,21 @@ scene.add(zHelperArrow);
 //scene.add(meshes[0]);
 //scene.add(meshes[1]);
 
-let targetName = "";
-window.addEventListener("pointerup", (event) => {
-    
+let targetName = "Sun";
+let targetCelestial = bodies.find((b) => b.name == targetName);
+let options = {
+    name: targetCelestial.name,
+    groupID: targetCelestial.groupID,
+    majorCelestial: targetCelestial.majorCelestial,
+    mass: targetCelestial.mass,
+    radius: targetCelestial.radius
+}
+gui.add(options, "name").listen().disable();
+gui.add(options, "groupID").listen().onChange(value => {options.groupID = value;});
+gui.add(options, "majorCelestial").listen().onChange(value => {options.majorCelestial = value;});
+gui.add(options, "mass").listen().onChange(value => {options.mass = value;});
+gui.add(options, "radius").listen().onChange(value => {options.radius = value;});
+window.addEventListener("pointerup", (event) => { //TODO make sure its a fast press and not just up pointer
     let pointer = new THREE.Vector2();
     pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -100,8 +115,25 @@ window.addEventListener("pointerup", (event) => {
     raycaster.setFromCamera(pointer,camera.camera);
     let intersects = raycaster.intersectObjects(meshes, false);
     if(intersects.length > 0) {
+        
         targetName = intersects[0].object.name;
-        console.log(targetName);
+        targetCelestial = bodies.find((b) => b.name == targetName);
+        if(!bodies.find((b) => b.name == intersects[0].object.name).majorCelestial) { //Prioritize major celestial when selecting
+            for(let i = 0; i < intersects.length; i++) {
+                if(bodies.find((b) => b.name == intersects[i].object.name).majorCelestial) {
+                    targetName = intersects[i].object.name;
+                    targetCelestial = bodies.find((b) => b.name == targetName);
+                    console.log(targetName);
+                    console.log(targetCelestial);
+                    break;
+                }
+            }
+        }
+        options.groupID = targetCelestial.groupID;
+        options.majorCelestial = targetCelestial.majorCelestial;
+        options.mass = targetCelestial.mass;
+        options.radius = targetCelestial.radius;
+        options.name = targetCelestial.name;
     } //TODO Make sure there is a pointerdown event first
 });
 
@@ -110,10 +142,25 @@ function render() {
     var deltaTime = clock.getDelta();
     requestAnimationFrame(render);
     for(var i = 0; i < bodies.length; i++) {
-        bodies[i].draw(camera);
+        bodies[i].draw(camera, targetCelestial.groupID);
     }
     if(targetName != "") {
-        camera.setTarget(bodies.find((b) => b.name == targetName));
+        if(options.name == targetName && (options.groupID != targetCelestial.groupID || options.majorCelestial != targetCelestial.majorCelestial || options.mass != targetCelestial.mass || options.radius != targetCelestial.radius)) {
+            console.log("UPDATING DATA");
+            targetCelestial.groupID = options.groupID;
+            targetCelestial.majorCelestial = options.majorCelestial;
+            targetCelestial.mass = options.mass;
+            targetCelestial.updateRadius(options.radius);
+            for(let i = 0; i < bodies.length; i++) {
+                if(bodies[i].name == targetName) {
+                    bodies[i] = targetCelestial;
+                }
+            }
+            sendBodiesToWorker(bodies,simulationWorker);
+        }
+        camera.setTarget(targetCelestial);
+        
+        
     }
     camera.move(deltaTime);
 
