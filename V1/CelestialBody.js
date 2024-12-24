@@ -12,10 +12,15 @@ export class CelestialBody {
         this.majorCelestial = majorCelestial; //If it is a planet/sun and should affect all groups
         this.mesh = new THREE.Mesh(new THREE.SphereGeometry(radius/1e9/*radius/1e9TODO: Realistic size (but things might get too small then) */, 32, 16), new THREE.MeshBasicMaterial({color:color, wireframe:true, side:THREE.DoubleSide}));
         this.mesh.position.set(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9); //Swapping z and y is intentional
-        this.ringMesh = new THREE.Mesh(new THREE.RingGeometry(47,50,32), new THREE.MeshBasicMaterial({color: name == "Jupiter" ? 0xff0000 : 0xffff00}));
-        this.selectMesh = new THREE.Mesh(new THREE.CircleGeometry(50,8));
-        //this.trailmesh = new THREE.Mesh(new THREE.SphereGeometry(radius/3,32,16), new THREE.MeshBasicMaterial({color:color}));
-        //this.trailmesh.layers.set(1);
+        this.selected = false;
+
+        let scale = this.majorCelestial ? 1 : 0.75;
+        this.ringMesh = new THREE.Mesh(new THREE.RingGeometry(47 * scale,50 * scale,32), new THREE.MeshBasicMaterial({color: this.majorCelestial ? 0xffff00 : 0x0000ff}));
+        this.selectMesh = new THREE.Mesh(new THREE.CircleGeometry(50 * scale,8));
+        //TODO: Trail segments calculated based on orbit distance from MajorBody parent
+        this.trailPoints = [new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9),new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9),new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9)];
+        this.trailBuffer = new THREE.BufferGeometry();
+        this.trailMesh = new THREE.Line(this.trailBuffer, new THREE.LineBasicMaterial({color:0xffffff, side:THREE.DoubleSide, linewidth: 5}))
 
         this.mesh.name = name;
         this.selectMesh.name = name;
@@ -42,12 +47,33 @@ export class CelestialBody {
     addToScene(scene) {
         scene.add(this.mesh);
         scene.add(this.ringMesh);
-        //scene.add(this.selectMesh);
+        scene.add(this.trailMesh);
     }
 
     draw(camera, groupID) {
-        //this.mesh.position.set(this.position.x/15e9,this.position.y/15e9,this.position.z/15e9);
-        //this.trailmesh.position.set(this.position.x/15e9,this.position.y/15e9,this.position.z/15e9);
+        if(this.selected) {
+            this.ringMesh.material.color.setHex(0xff0000);
+        } else {
+            this.ringMesh.material.color.setHex(this.majorCelestial ? 0xffff00 : 0x0000ff);
+        }
+        this.trailPoints.pop();
+        let angleBetweenPoints = this.trailPoints[this.trailPoints.length-1].clone().sub(this.trailPoints[this.trailPoints.length-2]).normalize().angleTo(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9).clone().sub(this.trailPoints[this.trailPoints.length-1]).normalize())*180/Math.PI;
+        if(angleBetweenPoints > 2 && this.trailPoints[this.trailPoints.length-1].clone().sub(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9)).length() != 0) {
+            if(this.name == "Earth") {
+                console.log(this.trailPoints.length);
+            }
+            this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
+        }
+        this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
+        if(this.majorCelestial || this.selected) {
+            this.trailMesh.visible = true;
+            this.trailBuffer.setFromPoints(this.trailPoints);
+            this.trailMesh.updateWorldMatrix();
+            this.trailMesh.geometry.computeBoundingSphere();
+        } else {
+            this.trailMesh.visible = false;
+        }
+
         if(this.majorCelestial || this.groupID == groupID) {
             this.ringMesh.visible = true;
             this.selectMesh.visible = true;
@@ -55,11 +81,11 @@ export class CelestialBody {
             var scale = this.mesh.position.distanceTo(camera.camera.position) / 1000;
             this.ringMesh.scale.set(scale, scale, scale);
             this.ringMesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
-            if(!this.majorCelestial) {
+            /*if(!this.majorCelestial) {
                 this.ringMesh.material.color.setHex(0x0000ff);
             } else {
                 this.ringMesh.material.color.setHex(0xffff00);
-            }
+            }*/
             this.selectMesh.position.set(this.ringMesh.position.x, this.ringMesh.position.y, this.ringMesh.position.z);
             this.selectMesh.scale.set(scale, scale, scale);
             this.selectMesh.setRotationFromQuaternion(camera.camera.quaternion);    

@@ -68,7 +68,7 @@ var bodies = SolarSystem.createCelestialBodies(scene);
 //var meshes = [new THREE.Mesh(new THREE.SphereGeometry(bodies[0].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[0].color, wireframe:true})),new THREE.Mesh(new THREE.SphereGeometry(bodies[1].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[1].color, wireframe:true}))];
 sendBodiesToWorker(bodies, simulationWorker);
 simulationWorker.onmessage = (e) => {
-    for(var i = 0; i < e.data.length; i++) {
+    for(var i = 0; i < e.data.length; i++) { //TODO: Interpolation so they don't lag
         bodies[i].setPhysicsData(e.data[i]);
     }
 }
@@ -99,42 +99,53 @@ gui.add(options, "groupID").listen().onChange(value => {options.groupID = value;
 gui.add(options, "majorCelestial").listen().onChange(value => {options.majorCelestial = value;});
 gui.add(options, "mass").listen().onChange(value => {options.mass = value;});
 gui.add(options, "radius").listen().onChange(value => {options.radius = value;});
-window.addEventListener("pointerup", (event) => { //TODO make sure its a fast press and not just up pointer
-    let pointer = new THREE.Vector2();
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    let meshes = [];
-    bodies.forEach(body => {
-        body.mesh.updateWorldMatrix();
-        body.selectMesh.updateWorldMatrix();
-        meshes.push(body.mesh);
-        meshes.push(body.selectMesh);
-    });
+let clickStartTime = 0;
+let startDragX = 0;
+let startDragY = 0;
+window.addEventListener("pointerdown", (event) => {
+    clickStartTime = performance.now();
+    startDragX = event.clientX;
+    startDragY = event.clientY;
+});
 
-    raycaster.setFromCamera(pointer,camera.camera);
-    let intersects = raycaster.intersectObjects(meshes, false);
-    if(intersects.length > 0) {
-        
-        targetName = intersects[0].object.name;
-        targetCelestial = bodies.find((b) => b.name == targetName);
-        if(!bodies.find((b) => b.name == intersects[0].object.name).majorCelestial) { //Prioritize major celestial when selecting
-            for(let i = 0; i < intersects.length; i++) {
-                if(bodies.find((b) => b.name == intersects[i].object.name).majorCelestial) {
-                    targetName = intersects[i].object.name;
-                    targetCelestial = bodies.find((b) => b.name == targetName);
-                    console.log(targetName);
-                    console.log(targetCelestial);
-                    break;
+window.addEventListener("pointerup", (event) => { //200ms maximum and 10px distance minimum
+    if(performance.now() - clickStartTime <= 200 && Math.hypot(event.clientX - startDragX, event.clientY - startDragY) <= 10) {
+        let pointer = new THREE.Vector2();
+        pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        let meshes = [];
+        bodies.forEach(body => {
+            body.mesh.updateWorldMatrix();
+            body.selectMesh.updateWorldMatrix();
+            meshes.push(body.mesh);
+            meshes.push(body.selectMesh);
+        });
+        raycaster.setFromCamera(pointer,camera.camera);
+        let intersects = raycaster.intersectObjects(meshes, false);
+        if(intersects.length > 0) {
+            targetCelestial.selected = false;
+            targetName = intersects[0].object.name;
+            targetCelestial = bodies.find((b) => b.name == targetName);
+            if(!bodies.find((b) => b.name == intersects[0].object.name).majorCelestial) { //Prioritize major celestial when selecting
+                for(let i = 0; i < intersects.length; i++) {
+                    if(bodies.find((b) => b.name == intersects[i].object.name).majorCelestial) {
+                        targetName = intersects[i].object.name;
+                        targetCelestial = bodies.find((b) => b.name == targetName);
+                        
+                        break;
+                    }
                 }
             }
+            targetCelestial.selected = true;
+            options.groupID = targetCelestial.groupID;
+            options.majorCelestial = targetCelestial.majorCelestial;
+            options.mass = targetCelestial.mass;
+            options.radius = targetCelestial.radius;
+            options.name = targetCelestial.name;
         }
-        options.groupID = targetCelestial.groupID;
-        options.majorCelestial = targetCelestial.majorCelestial;
-        options.mass = targetCelestial.mass;
-        options.radius = targetCelestial.radius;
-        options.name = targetCelestial.name;
-    } //TODO Make sure there is a pointerdown event first
+    }
 });
 
 function render() {
