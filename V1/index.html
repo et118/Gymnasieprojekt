@@ -5,9 +5,39 @@
 		<title>My first three.js app</title>
 		<style>
 			body { margin: 0; }
+			#celestialsDiv{
+				position:absolute;
+				bottom:0%;
+				left:20px;
+			}
+			#controlPanelDiv {
+				position:absolute;
+				bottom:0%;
+				right:0%;
+			}
+
+			#guiCelestials{
+				position:relative;
+			}
+
+			#guiControlPanel {
+				position:relative;
+			}
+
+			#guiCelestials > .children {
+				padding-left:0px !important;
+				max-height: 70vh;
+			}
+
+			.children {
+				padding-left:20px;
+				/*overflow-y:scroll;*/
+			}
 		</style>
 	</head>
 	<body>
+		<div id="celestialsDiv"></div>
+		<div id="controlPanelDiv"></div>
 		<script type="module" src="/main.js"></script>
 	</body>
 </html>

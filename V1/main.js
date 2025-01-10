@@ -11,7 +11,6 @@ import * as SolarSystem from './SolarSystem.js'
     https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation    //For the asteroid fields
     https://en.wikipedia.org/wiki/Fast_multipole_method
 */
-//TODO Gui with lil-gui
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
@@ -19,7 +18,9 @@ const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / w
 const camera = new Camera(perspectiveCamera, renderer);
 const renderScenePass = new RenderPass(scene,camera.camera);
 //const afterImagePass = new AfterimagePass();
-const gui = new GUI();
+const guiStats = new GUI();
+const guiCelestials = new GUI();
+const guiControlPanel = new GUI();
 const trailComposer = new EffectComposer(renderer);
 const clock = new THREE.Clock();
 const stats = new Stats();
@@ -73,17 +74,14 @@ simulationWorker.onmessage = (e) => {
     }
 }
 
-var bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(10000,10000,1000,1000), new THREE.MeshBasicMaterial( {color:0xffffff, wireframe:true}))
+/*var bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(10000,10000,1000,1000), new THREE.MeshBasicMaterial( {color:0xffffff, wireframe:true}))
 bottomPlane.rotateOnAxis(new THREE.Vector3(1,0,0),Math.PI/2);
 var xHelperArrow = new THREE.ArrowHelper(new THREE.Vector3(10000,0,0),new THREE.Vector3(10,0,0), 10000, 0xf51e0f); //RED
 var yHelperArrow = new THREE.ArrowHelper(new THREE.Vector3(0,10000,0),new THREE.Vector3(10,0,0), 10000, 0x4cf50f); //GREEN
 var zHelperArrow = new THREE.ArrowHelper(new THREE.Vector3(0,0,10000),new THREE.Vector3(10,0,0), 10000, 0x0f4cf5); //BLUE
-//scene.add(bottomPlane);
 scene.add(xHelperArrow);
 scene.add(yHelperArrow);
-scene.add(zHelperArrow);
-//scene.add(meshes[0]);
-//scene.add(meshes[1]);
+scene.add(zHelperArrow);*/
 
 let targetName = "Sun";
 let targetCelestial = bodies.find((b) => b.name == targetName);
@@ -94,11 +92,78 @@ let options = {
     mass: targetCelestial.mass,
     radius: targetCelestial.radius
 }
-gui.add(options, "name").listen().disable();
-gui.add(options, "groupID").listen().onChange(value => {options.groupID = value;});
-gui.add(options, "majorCelestial").listen().onChange(value => {options.majorCelestial = value;});
-gui.add(options, "mass").listen().onChange(value => {options.mass = value;});
-gui.add(options, "radius").listen().onChange(value => {options.radius = value;});
+guiStats.title("Stats");
+guiStats.add(options, "name").listen().disable();
+guiStats.add(options, "groupID").listen().onChange(value => {options.groupID = value;});
+guiStats.add(options, "majorCelestial").listen().onChange(value => {options.majorCelestial = value;});
+guiStats.add(options, "mass").listen().onChange(value => {options.mass = value;});
+guiStats.add(options, "radius").listen().onChange(value => {options.radius = value;});
+
+guiCelestials.title("Celestials");
+guiCelestials.domElement.id = "guiCelestials";
+document.getElementById("celestialsDiv").appendChild(guiCelestials.domElement);
+guiCelestials.addFolder("Sun").open(false);
+guiCelestials.addFolder("Mercury").open(false);
+guiCelestials.addFolder("Venus").open(false);
+guiCelestials.addFolder("Earth").open(false);
+guiCelestials.addFolder("Mars").open(false);
+guiCelestials.addFolder("Jupiter").open(false);
+guiCelestials.addFolder("Saturn").open(false);
+guiCelestials.addFolder("Uranus").open(false);
+guiCelestials.addFolder("Neptune").open(false);
+guiCelestials.addFolder("Pluto").open(false);
+
+bodies.forEach((body) => {
+    if(!body.majorCelestial) {
+        let celestial = "Sun";
+        if(body.groupID == 1) celestial = "Mercury";
+        if(body.groupID == 2) celestial = "Venus";
+        if(body.groupID == 3) celestial = "Earth";
+        if(body.groupID == 4) celestial = "Mars";
+        if(body.groupID == 5) celestial = "Jupiter";
+        if(body.groupID == 6) celestial = "Saturn";
+        if(body.groupID == 7) celestial = "Uranus";
+        if(body.groupID == 8) celestial = "Neptune";
+        if(body.groupID == 9) celestial = "Pluto";
+        guiCelestials.folders.forEach((folder) => {
+            if(folder._title == celestial) {
+                folder.addFolder(body.name).open(false);
+            } 
+        });
+    }
+});
+
+guiControlPanel.title("Control Panel");
+guiControlPanel.domElement.id = "guiControlPanel";
+document.getElementById("controlPanelDiv").appendChild(guiControlPanel.domElement);
+guiControlPanel.add({enableMoons:true},"enableMoons").name("Enable Moons");
+guiControlPanel.add({pause: false}, "pause").name("Pause");
+guiControlPanel.add({timeScale:2000000},"timeScale",1,10000000).name("Time Scale");
+guiControlPanel.add({minimumTimestep:0.0001},"minimumTimestep",0.0001,1).name("Minimum Time Step");
+
+
+
+
+guiCelestials.onOpenClose( changedGUI => {
+    guiCelestials.folders.forEach((folder) => {
+        if(folder._title != changedGUI._title) {
+            folder.open(false);
+        }
+    });
+    if(!changedGUI._closed) {
+        targetCelestial.selected = false;
+        targetName = changedGUI._title;
+        targetCelestial = bodies.find((b) => b.name == targetName);
+        targetCelestial.selected = true;
+        options.groupID = targetCelestial.groupID;
+        options.majorCelestial = targetCelestial.majorCelestial;
+        options.mass = targetCelestial.mass;
+        options.radius = targetCelestial.radius;
+        options.name = targetCelestial.name;
+    }
+} );
+
+
 
 let clickStartTime = 0;
 let startDragX = 0;

@@ -58,10 +58,7 @@ export class CelestialBody {
         }
         this.trailPoints.pop();
         let angleBetweenPoints = this.trailPoints[this.trailPoints.length-1].clone().sub(this.trailPoints[this.trailPoints.length-2]).normalize().angleTo(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9).clone().sub(this.trailPoints[this.trailPoints.length-1]).normalize())*180/Math.PI;
-        if(angleBetweenPoints > 2 && this.trailPoints[this.trailPoints.length-1].clone().sub(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9)).length() != 0) {
-            if(this.name == "Earth") {
-                console.log(this.trailPoints.length);
-            }
+        if(angleBetweenPoints > 1 && this.trailPoints[this.trailPoints.length-1].clone().sub(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9)).length() != 0) {
             this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
         }
         this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
