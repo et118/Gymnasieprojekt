@@ -1,16 +1,21 @@
 import * as THREE from 'three';
 const G = 6.6743e-11;
 const clock = new THREE.Clock();
-const timeFactor = 2000000;
-const maximumTimestep = 0.0001
-var bodies = []
+let timeFactor = 2000000;
+let maximumTimestep = 0.0001
+let bodies = []
 
 onmessage = (e) => {
-    const type = e.data[0]; //0 == set bodies, 1 == get bodies
+    const type = e.data[0]; //0 == set bodies,     1 == get bodies
+                            //2 == setMaxTimestep, 3 == timeFactor
     if(type == 0) {
         bodies = e.data[1];
     } else if(type == 1){
         postMessage(bodies);
+    } else if(type == 2) {
+        maximumTimestep = e.data[1];
+    } else if(type == 3) {
+        timeFactor = e.data[1];
     }
 };
 

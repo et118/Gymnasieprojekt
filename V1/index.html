@@ -33,11 +33,84 @@
 				padding-left:20px;
 				/*overflow-y:scroll;*/
 			}
+
+			#timeFactorLabel > button {
+				width:30px;
+				margin-left:10px;
+			}
+
+			#timeFactorBar {
+				height:20px;
+				background-color: black;
+				border: 1px solid grey;
+				margin-bottom:20px;
+			}
+
+			#timeFactorLimitBar {
+				background-color: lightgreen;
+				height:100%;
+				width:90%;
+				margin-left:-4px;
+			}
+
+			#timeFactorPin {
+				border-left: 4px solid red;
+				height:18px;
+				width:10px;
+				position:absolute;
+				margin-left:calc(-4px);
+				cursor:move;
+				
+			}
+
+			#timeFactorPin > span {
+				color:white;
+				position: relative;
+				margin-left:-30px;
+				line-height:50px;
+			}
 		</style>
 	</head>
 	<body>
 		<div id="celestialsDiv"></div>
 		<div id="controlPanelDiv"></div>
+		<div class="controller name" id="timeFactorLabel">
+			<span>Time Factor</span>
+			<button>x0</button>
+			<button>x2</button>
+			<button>x5</button>
+			<button>x10</button>
+		</div>
+		<div class="controller" id="timeFactorBar">
+			<div id="timeFactorLimitBar"></div>
+			<div id="timeFactorPin">
+				<span>5.3day/s</span>
+			</div>
+		</div>
 		<script type="module" src="/main.js"></script>
+		<script>
+			let pin = document.getElementById("timeFactorPin");
+			let pos1 = 0, pos3 = 0;
+			pin.onmousedown = function (e) {
+				e = e || window.event;
+				e.preventDefault();
+				pos3 = e.clientX;
+				document.onmouseup = function (e) {
+					document.onmouseup = null;
+					document.onmousemove = null;
+				}
+				document.onmousemove = function (e) {
+					e = e || window.event;
+					e.preventDefault();
+					pos1 = pos3 - e.clientX;
+					pos3 = e.clientX;
+					
+					let offset = e.clientX - 320;
+					if (offset < 25) offset = 25;
+					if (offset > 245) offset = 245;
+					pin.style.left = (offset) + "px";
+				}
+			}
+		</script>
 	</body>
 </html>

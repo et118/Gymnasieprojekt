@@ -63,6 +63,8 @@ function sendBodiesToWorker(bodies, worker) {
 
 const simulationWorker = new Worker("simulationWorker.js", {type:"module"});
 var bodies = SolarSystem.createCelestialBodies(scene);
+//bodies = bodies.concat(SolarSystem.createMoonBodies(scene)); TODO: Add back
+        
 //var bodies = [new CelestialBody(0, 0, 0, 2, 1.9884e30, new THREE.Vector3(0,0,0), 0xf0e816),
 //              new CelestialBody(150e9, 0, 0, 1, 5.97219e24, new THREE.Vector3(0,0,30000), 0x1541ed)];
 
@@ -136,11 +138,29 @@ bodies.forEach((body) => {
 guiControlPanel.title("Control Panel");
 guiControlPanel.domElement.id = "guiControlPanel";
 document.getElementById("controlPanelDiv").appendChild(guiControlPanel.domElement);
-guiControlPanel.add({enableMoons:true},"enableMoons").name("Enable Moons");
-guiControlPanel.add({pause: false}, "pause").name("Pause");
-guiControlPanel.add({timeScale:2000000},"timeScale",1,10000000).name("Time Scale");
-guiControlPanel.add({minimumTimestep:0.0001},"minimumTimestep",0.0001,1).name("Minimum Time Step");
+guiControlPanel.add({enableMoons:true},"enableMoons").name("Enable Moons").listen().onChange(value => {
+    if(value) {
+        bodies.forEach(body => {
+            body.removeFromScene(scene);
+        });
+        
+        bodies = SolarSystem.createCelestialBodies(scene);
+        bodies = bodies.concat(SolarSystem.createMoonBodies(scene));
+        sendBodiesToWorker(bodies, simulationWorker);
+    } else {
+        bodies.forEach(body => {
+            body.removeFromScene(scene);
+        });
+        bodies = SolarSystem.createCelestialBodies(scene);
+        sendBodiesToWorker(bodies, simulationWorker);
+    }
+});
+guiControlPanel.add({maximumTimeStep:0.0001},"maximumTimeStep",0.0001,0.001, 0.0001).name("Maximum Time Step").listen().onChange(value => {
+    simulationWorker.postMessage([2, value]);
+});
 
+guiControlPanel.$children.insertBefore(document.getElementById("timeFactorLabel"), guiControlPanel.$children.childNodes[0]);
+guiControlPanel.$children.insertBefore(document.getElementById("timeFactorBar"), guiControlPanel.$children.childNodes[0]);
 
 
 
