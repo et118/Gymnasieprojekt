@@ -77,9 +77,9 @@
 		<div class="controller name" id="timeFactorLabel">
 			<span>Time Factor</span>
 			<button>x0</button>
-			<button>x2</button>
-			<button>x5</button>
-			<button>x10</button>
+			<button>x1</button>
+			<button>day/s</button>
+			<button>year/s</button>
 		</div>
 		<div class="controller" id="timeFactorBar">
 			<div id="timeFactorLimitBar"></div>
@@ -105,7 +105,7 @@
 					pos1 = pos3 - e.clientX;
 					pos3 = e.clientX;
 					
-					let offset = e.clientX - 320;
+					let offset = e.clientX;
 					if (offset < 25) offset = 25;
 					if (offset > 245) offset = 245;
 					pin.style.left = (offset) + "px";

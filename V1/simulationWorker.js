@@ -74,7 +74,7 @@ function process() {
     bodies.forEach(body => {
         body.position = vectorAdd(body.position,vectorMultiply(body.velocity,deltaTime));
     });
-    setTimeout(process,0);
+    setTimeout(process,100);
     //channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
 }
 // https://stackoverflow.com/questions/18826570/settimeout0-vs-window-postmessage-vs-messageport-postmessage 
