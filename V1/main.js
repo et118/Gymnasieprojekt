@@ -26,8 +26,9 @@ const stats = new Stats();
 const raycaster = new THREE.Raycaster();
 raycaster.layers.enableAll();
 
-let maximumTimeStep = 0.0001;
-let simulationTimestep = 0;
+let maximumTimeStep = 1; //1 second steps
+let targetTimeFactor = 1; //Target speed
+let averageTimestep = 0; //How long each simulation frame takes
 
 function initThreeJS() {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -65,9 +66,10 @@ const simulationWorker = new Worker("simulationWorker.js", {type:"module"});
 let bodies = SolarSystem.createCelestialBodies(scene);
 sendBodiesToWorker(bodies, simulationWorker);
 simulationWorker.postMessage([2, maximumTimeStep]);
+simulationWorker.postMessage([3, targetTimeFactor]);
 simulationWorker.onmessage = (e) => {
-    simulationTimestep = e.data[0];
-    console.log(simulationTimestep);
+    averageTimestep = e.data[0];
+    //console.log(simulationTimestep);
     for(let i = 0; i < e.data[1].length; i++) { //TODO: Interpolation so they don't lag
         bodies[i].setPhysicsData(e.data[1][i]);
     }
@@ -174,10 +176,13 @@ guiControlPanel.add({enableMoons:true},"enableMoons").name("Enable Moons").liste
         sendBodiesToWorker(bodies, simulationWorker);
     }
 });
-guiControlPanel.add({maximumTimeStep:0.0001},"maximumTimeStep",0.0001,0.001, 0.0001).name("Maximum Time Step").listen().onChange(value => {
+guiControlPanel.add({maximumTimeStep:1},"maximumTimeStep",1,10000, 1).name("Maximum Time Step").listen().onChange(value => {
     maximumTimeStep = value;
     simulationWorker.postMessage([2, maximumTimeStep]);
-});
+    setTimeout(() => {
+        document.getElementsByClassName("controller number hasSlider")[0].getElementsByClassName("widget")[0].getElementsByTagName("input")[0].value = timeToUnits(maximumTimeStep).replace("/s","");
+    },10);
+    });
 guiControlPanel.$children.insertBefore(document.getElementById("timeFactorLabel"), guiControlPanel.$children.childNodes[0]);
 guiControlPanel.$children.insertBefore(document.getElementById("timeFactorBar"), guiControlPanel.$children.childNodes[0]);
 
@@ -210,16 +215,51 @@ Therefore timeFactor is 20.000.000
 MaximumTimestep is 1 second  = 1
 Let's say deltaTime is 0.05 seconds
 Then the wanted timestep is 0.05 * 20.000.000 = 1.000.000 = 11.5d
-But we have a limit of 1 millisecond, so the actual speed of the simulation is: (1 / 1.000.000) * 20.000.000 = 20x speedup
+But we have a limit of 1 second, so the actual speed of the simulation is: (1 / 1.000.000) * 20.000.000 = 20x speedup
 
 Goals: 
 1. Change from the weird timeFactor * capped deltatime, to a cap(timeFactor * deltaTime)
 2. Change maximumTimestep to be the amount of Time that a simulation step can max take
 3. Start working on the sliders.
 */
+function timeToUnits(time) {
+    let prefix = "sec/s";
+    if (time >= 60) {
+        prefix = "min/s";
+        time /= 60;
+    }
+    if(time >= 60) {
+        prefix = "hour/s";
+        time /= 60;
+    }
+    if(time >= 24 && prefix == "hour/s") {
+        prefix = "day/s";
+        time /= 24;
+    }
+    if(time >= 365) {
+        prefix = "year/s";
+        time /= 365;
+    }
+    return time.toFixed(1) + prefix;
+}
 
+function updateTimeFactorController() {
+    let currentSpeed = (maximumTimeStep / (averageTimestep));
+    document.getElementById("timeFactorLimitBar").style.width = 100 * ((Math.log10(currentSpeed)) / (Math.log10(31556926))) + "%";
 
-//document.getElementById("timeFactorLimitBar").style.width = 
+    document.getElementById("maxTimePin").getElementsByTagName("span")[0].textContent = timeToUnits(currentSpeed);
+    //console.log(currentSpeed);
+
+    //targetTimeFactor = 0 - 220
+    let value = document.getElementById("timeFactorPin").style.left.split("px")[0] - 25;
+    if(targetTimeFactor != Math.pow(10,(value/220) * Math.log10(31556926))) {
+        targetTimeFactor = Math.pow(10,(value/220) * Math.log10(31556926));
+        simulationWorker.postMessage([3, targetTimeFactor]);
+    }
+
+    document.getElementById("timeFactorPin").getElementsByTagName("span")[0].textContent = timeToUnits(targetTimeFactor);
+}
+
 
 
 //Clicking on planets
@@ -275,6 +315,7 @@ function render() {
     stats.begin();
     let deltaTime = clock.getDelta();
     requestAnimationFrame(render);
+    updateTimeFactorController();
     for(let i = 0; i < bodies.length; i++) {
         bodies[i].draw(camera, targetCelestial.groupID);
     }

@@ -48,8 +48,10 @@
 			#timeFactorLimitBar {
 				background-color: lightgreen;
 				height:100%;
-				width:90%;
+				width:100%;
 				margin-left:-4px;
+				overflow:hidden;
+				position:relative;
 			}
 
 			#timeFactorPin {
@@ -62,10 +64,18 @@
 				
 			}
 
+			#maxTimePin {
+				color:black;
+				margin-left:2px;
+				position:absolute;
+				right:5px;
+				top:2px;
+			}
+
 			#timeFactorPin > span {
 				color:white;
 				position: relative;
-				margin-left:-30px;
+				margin-left:-38px;
 				line-height:50px;
 			}
 		</style>
@@ -81,14 +91,20 @@
 			<button>year/s</button>
 		</div>
 		<div class="controller" id="timeFactorBar">
-			<div id="timeFactorLimitBar"></div>
+			<div id="timeFactorLimitBar">
+				<div id="maxTimePin">
+					<span>5.3day/s</span>
+				</div>
+			</div>
 			<div id="timeFactorPin">
 				<span>5.3day/s</span>
 			</div>
+			
 		</div>
 		<script type="module" src="/main.js"></script>
 		<script>
 			let pin = document.getElementById("timeFactorPin");
+			pin.style.left = "25px";
 			let pos1 = 0, pos3 = 0;
 			pin.onmousedown = function (e) {
 				e.preventDefault();

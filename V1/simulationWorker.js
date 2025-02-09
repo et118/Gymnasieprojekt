@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 const G = 6.6743e-11;
 const clock = new THREE.Clock();
-let timeFactor = 2000000;
-let maximumTimestep = 0.0001
+let targetTimeFactor = 1;
+let maximumTimestep = 1; //1 second per frame
 let bodies = []
 
 onmessage = (e) => {
@@ -15,7 +15,7 @@ onmessage = (e) => {
     } else if(type == 2) {
         maximumTimestep = e.data[1];
     } else if(type == 3) {
-        timeFactor = e.data[1];
+        targetTimeFactor = e.data[1];
     }
 };
 
@@ -43,24 +43,31 @@ function vectorMultiply(v1, x) {
 }
 
 let counter = 0;
-let time = 0;
+let time = [];
 let averageTimestep = 0;
 let channel = new MessageChannel();
 
 function process() {
 
     let deltaTime = clock.getDelta();
-    time += deltaTime;
+    if(deltaTime == 0) {
+        channel.port2.postMessage(null);
+        return;
+    }
+    time.push(deltaTime);
+
     counter += 1;
-    averageTimestep = deltaTime; //TODO: smooth out to become an actual average
-    if(time >= 1) {
+    if(time.reduce((p,c)=>p+c,0) >= 0.1) {
+        averageTimestep = time.sort((a,b)=>a-b)[Math.floor(time.length/2)];
         //console.log("TargetSpeed: " + timeFactor + "x    CPU Speed: " + ((maximumTimestep / (time / counter)) > 1 ? timeFactor + "x " + Math.round((maximumTimestep / (time / counter))*100) + "% simulation quality" : (maximumTimestep / (time / counter)) * timeFactor + "x"));
         counter = 0;
-        time = 0;
+        time = [];
+        //console.log(deltaTime * targetTimeFactor > maximumTimestep ? maximumTimestep : deltaTime * targetTimeFactor);
     }
-    if(deltaTime > maximumTimestep) deltaTime = maximumTimestep; //To prevent time leaps, for example when tabbing out sometimes or when overloaded
     
-    deltaTime *= timeFactor;
+    deltaTime *= targetTimeFactor;
+    if(deltaTime > maximumTimestep) deltaTime = maximumTimestep; //To prevent time leaps, for example when tabbing out sometimes or when overloaded
+    //console.log(deltaTime);
     for(let i = 0; i < bodies.length - 1; i++) {
         for(let j = i + 1; j < bodies.length; j++) {
             let sourceBody = bodies[j];
@@ -76,8 +83,8 @@ function process() {
     bodies.forEach(body => {
         body.position = vectorAdd(body.position,vectorMultiply(body.velocity,deltaTime));
     });
-    setTimeout(process,100);
-    //channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
+    //setTimeout(process,0);
+    channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
 }
 // https://stackoverflow.com/questions/18826570/settimeout0-vs-window-postmessage-vs-messageport-postmessage 
 channel.port1.onmessage = function (ev) {

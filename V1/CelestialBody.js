@@ -70,7 +70,7 @@ export class CelestialBody {
             this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
         }
         if(this.name == "Pluto" && this.trailPoints.length != this.lastTrailPoints) {
-            console.log(this.trailPoints.length);
+            //console.log(this.trailPoints.length);
             this.lastTrailPoints = this.trailPoints.length;
         }
         if(this.trailPoints.length == 360 && this.majorCelestial){// && (this.name == "Jupiter" || this.name == "Saturn" || this.name == "Uranus" || this.name == "Neptune" || this.name == "Pluto")) {
@@ -79,7 +79,7 @@ export class CelestialBody {
                 output += "{\"x\":"+point.x+",\"y\":" + point.y + ",\"z\":" + point.z + "},";
             });
             output += "]";
-            console.log(output);
+            //console.log(output);
         }
         this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
         if(this.majorCelestial || this.selected) {
