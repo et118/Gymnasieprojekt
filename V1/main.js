@@ -11,13 +11,12 @@ import * as SolarSystem from './SolarSystem.js'
     https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation    //For the asteroid fields
     https://en.wikipedia.org/wiki/Fast_multipole_method
 */
-
+//Global Variables
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 50000 );
 const camera = new Camera(perspectiveCamera, renderer);
 const renderScenePass = new RenderPass(scene,camera.camera);
-//const afterImagePass = new AfterimagePass();
 const guiStats = new GUI();
 const guiCelestials = new GUI();
 const guiControlPanel = new GUI();
@@ -27,17 +26,17 @@ const stats = new Stats();
 const raycaster = new THREE.Raycaster();
 raycaster.layers.enableAll();
 
+let maximumTimeStep = 0.0001;
+let simulationTimestep = 0;
+
 function initThreeJS() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.autoClear = false;
     renderer.clear();
-    //afterImagePass.uniforms["damp"].value = 0.975;
     trailComposer.addPass(renderScenePass);
-    //trailComposer.addPass(afterImagePass);
     stats.showPanel(0);
     perspectiveCamera.position.z = 5000;
     perspectiveCamera.position.x = 1000;
-    perspectiveCamera.rotateX(-Math.PI/2); //looking downwards
     document.body.appendChild(renderer.domElement);
     document.body.appendChild(stats.dom);
     window.addEventListener('resize', onWindowResize, false);
@@ -54,25 +53,23 @@ function onWindowResize() {
 }
 
 function sendBodiesToWorker(bodies, worker) {
-    var rawPhysicsData = [];
+    let rawPhysicsData = [];
     bodies.forEach(body => {
         rawPhysicsData.push(body.getPhysicsData());
     });
     worker.postMessage([0,rawPhysicsData]);
 }
 
+//Setting up simulation thread and giving it data
 const simulationWorker = new Worker("simulationWorker.js", {type:"module"});
-var bodies = SolarSystem.createCelestialBodies(scene);
-//bodies = bodies.concat(SolarSystem.createMoonBodies(scene)); TODO: Add back
-        
-//var bodies = [new CelestialBody(0, 0, 0, 2, 1.9884e30, new THREE.Vector3(0,0,0), 0xf0e816),
-//              new CelestialBody(150e9, 0, 0, 1, 5.97219e24, new THREE.Vector3(0,0,30000), 0x1541ed)];
-
-//var meshes = [new THREE.Mesh(new THREE.SphereGeometry(bodies[0].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[0].color, wireframe:true})),new THREE.Mesh(new THREE.SphereGeometry(bodies[1].radius,32,16), new THREE.MeshBasicMaterial({color:bodies[1].color, wireframe:true}))];
+let bodies = SolarSystem.createCelestialBodies(scene);
 sendBodiesToWorker(bodies, simulationWorker);
+simulationWorker.postMessage([2, maximumTimeStep]);
 simulationWorker.onmessage = (e) => {
-    for(var i = 0; i < e.data.length; i++) { //TODO: Interpolation so they don't lag
-        bodies[i].setPhysicsData(e.data[i]);
+    simulationTimestep = e.data[0];
+    console.log(simulationTimestep);
+    for(let i = 0; i < e.data[1].length; i++) { //TODO: Interpolation so they don't lag
+        bodies[i].setPhysicsData(e.data[1][i]);
     }
 }
 
@@ -85,6 +82,7 @@ scene.add(xHelperArrow);
 scene.add(yHelperArrow);
 scene.add(zHelperArrow);*/
 
+//Planet stats GUI
 let targetName = "Sun";
 let targetCelestial = bodies.find((b) => b.name == targetName);
 let options = {
@@ -101,6 +99,7 @@ guiStats.add(options, "majorCelestial").listen().onChange(value => {options.majo
 guiStats.add(options, "mass").listen().onChange(value => {options.mass = value;});
 guiStats.add(options, "radius").listen().onChange(value => {options.radius = value;});
 
+//Planet selector GUI
 guiCelestials.title("Celestials");
 guiCelestials.domElement.id = "guiCelestials";
 document.getElementById("celestialsDiv").appendChild(guiCelestials.domElement);
@@ -135,6 +134,26 @@ bodies.forEach((body) => {
     }
 });
 
+guiCelestials.onOpenClose( changedGUI => {
+    guiCelestials.folders.forEach((folder) => {
+        if(folder._title != changedGUI._title) {
+            folder.open(false);
+        }
+    });
+    if(!changedGUI._closed) {
+        targetCelestial.selected = false;
+        targetName = changedGUI._title;
+        targetCelestial = bodies.find((b) => b.name == targetName);
+        targetCelestial.selected = true;
+        options.groupID = targetCelestial.groupID;
+        options.majorCelestial = targetCelestial.majorCelestial;
+        options.mass = targetCelestial.mass;
+        options.radius = targetCelestial.radius;
+        options.name = targetCelestial.name;
+    }
+} );
+
+//Control panel GUI
 guiControlPanel.title("Control Panel");
 guiControlPanel.domElement.id = "guiControlPanel";
 document.getElementById("controlPanelDiv").appendChild(guiControlPanel.domElement);
@@ -156,35 +175,54 @@ guiControlPanel.add({enableMoons:true},"enableMoons").name("Enable Moons").liste
     }
 });
 guiControlPanel.add({maximumTimeStep:0.0001},"maximumTimeStep",0.0001,0.001, 0.0001).name("Maximum Time Step").listen().onChange(value => {
-    simulationWorker.postMessage([2, value]);
+    maximumTimeStep = value;
+    simulationWorker.postMessage([2, maximumTimeStep]);
 });
-
 guiControlPanel.$children.insertBefore(document.getElementById("timeFactorLabel"), guiControlPanel.$children.childNodes[0]);
 guiControlPanel.$children.insertBefore(document.getElementById("timeFactorBar"), guiControlPanel.$children.childNodes[0]);
 
 
+//Time Factor Controller
+//simulationTimestep = the milliseconds that each simulation step takes
+//maximumTimestep = the cap that each frame has
+//timeFactor = how many times real time speed the simulation runs at
 
-guiCelestials.onOpenClose( changedGUI => {
-    guiCelestials.folders.forEach((folder) => {
-        if(folder._title != changedGUI._title) {
-            folder.open(false);
-        }
-    });
-    if(!changedGUI._closed) {
-        targetCelestial.selected = false;
-        targetName = changedGUI._title;
-        targetCelestial = bodies.find((b) => b.name == targetName);
-        targetCelestial.selected = true;
-        options.groupID = targetCelestial.groupID;
-        options.majorCelestial = targetCelestial.majorCelestial;
-        options.mass = targetCelestial.mass;
-        options.radius = targetCelestial.radius;
-        options.name = targetCelestial.name;
-    }
-} );
+//maximumTimestep * timeFactor = highest possible timestep (Ex. 4 days means the planets jump to their new location every 4 days) //TODO: Show next to MaximumTimestep slider to give some real value
+
+/*
+I wanna run the simulation at 100x real speed.
+Therefore timeFactor is 100;
+MaximumTimestep is set at 0.0001;
+Therefore the highest timestep in the simulation is 100*0.0001 = 0.01 = 1 millisecond
+But the cpu is probably good enough to make the timestep even smaller, and therefore increase the quality
+
+Now i want to run the simulation at 20.000.000x speed.
+Therefore timeFactor is 20.000.000
+MaximumTimestep is still 0.0001;
+Therefore the highest possible timestep in the simulation is 20000000*0.0001 = 2000 = 33.33 minutes
+The cpu will most likely be limited and reach the highest possible timestep
+
+To make it work i think i will have to change MaximumTimestep to apply after timeFactor * deltatime and be in the form of (maximum time passed per tick)
+If that is the case then another example again:
+
+Running the simulation at target 20.000.000x speed
+Therefore timeFactor is 20.000.000
+MaximumTimestep is 1 second  = 1
+Let's say deltaTime is 0.05 seconds
+Then the wanted timestep is 0.05 * 20.000.000 = 1.000.000 = 11.5d
+But we have a limit of 1 millisecond, so the actual speed of the simulation is: (1 / 1.000.000) * 20.000.000 = 20x speedup
+
+Goals: 
+1. Change from the weird timeFactor * capped deltatime, to a cap(timeFactor * deltaTime)
+2. Change maximumTimestep to be the amount of Time that a simulation step can max take
+3. Start working on the sliders.
+*/
 
 
+//document.getElementById("timeFactorLimitBar").style.width = 
 
+
+//Clicking on planets
 let clickStartTime = 0;
 let startDragX = 0;
 let startDragY = 0;
@@ -232,12 +270,12 @@ window.addEventListener("pointerup", (event) => { //200ms maximum and 10px dista
         }
     }
 });
-
+//Main loop
 function render() {
     stats.begin();
-    var deltaTime = clock.getDelta();
+    let deltaTime = clock.getDelta();
     requestAnimationFrame(render);
-    for(var i = 0; i < bodies.length; i++) {
+    for(let i = 0; i < bodies.length; i++) {
         bodies[i].draw(camera, targetCelestial.groupID);
     }
     if(targetName != "") {
@@ -262,102 +300,10 @@ function render() {
 
     simulationWorker.postMessage([1]);
     renderer.clear();
-    //camera.layers.set(1);
-    //trailComposer.render(scene,camera);
     renderer.clearDepth();
     perspectiveCamera.layers.set(0);
     renderer.render(scene,perspectiveCamera);
 
-    //var deltaTime = clock.getDelta();
-    //camera.move(deltaTime);
-    
-    //moveCelestialBodies(celestialBodies, deltaTime*10000000);
     stats.end();
 }
 render();
-//This thread handles the rendering and storing all the meshes
-//The webworker works on the gravitational results and pushes back
-//a list of positional values (and maybe velocities)
-
-/*
-const G = 6.6743e-11;
-const stats = new Stats();
-stats.showPanel(0);
-document.body.appendChild(stats.dom);
-const scene = new THREE.Scene();
-const clock = new THREE.Clock();
-const camera = new Camera();
-const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
-renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.autoClear = false;
-renderer.clear();
-document.body.appendChild( renderer.domElement );
-
-var bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(100,100,100,100), new THREE.MeshBasicMaterial( {color:0xffffff, wireframe:true}))
-var sun = new CelestialBody(0, 0, 0, 2, 1.9884e30, new THREE.Vector3(0,0,0), 0xf0e816);
-var earth = new CelestialBody(10, 0, 0, 1, 5.97219e24, new THREE.Vector3(0,0,30000), 0x1541ed);
-var earth2 = new CelestialBody(7, 0, 0, 1, 5.97219e24, new THREE.Vector3(0,0,30000), 0x1541ed);
-
-var velocityArrow = new THREE.ArrowHelper(earth.velocity.clone().normalize(), new THREE.Vector3(earth.position.x/15e9,earth.position.y/15e9,earth.position.z/15e9), 5, 0xdb12ac);
-scene.add(bottomPlane);
-scene.add(sun.mesh);
-scene.add(earth.mesh);
-scene.add(earth.trailmesh);
-scene.add(earth2.mesh);
-scene.add(earth2.trailmesh);
-scene.add(velocityArrow);
-bottomPlane.rotateOnAxis(new THREE.Vector3(1,0,0),Math.PI/2);
-camera.camera.position.y = 15;
-camera.camera.rotateX(-Math.PI/2);
-var celestialBodies = [sun,earth,earth2];
-
-
-const renderScene = new RenderPass(scene,camera.camera);
-const afterImagePass = new AfterimagePass();
-afterImagePass.uniforms["damp"].value = 0.975;
-const composer = new EffectComposer(renderer);
-composer.addPass(renderScene);
-composer.addPass(afterImagePass);
-
-
-function onNewFrame() {
-    stats.begin();
-    requestAnimationFrame(onNewFrame);
-    renderer.clear();
-
-    camera.camera.layers.set(1);
-    composer.render(scene,camera.camera);
-    
-    renderer.clearDepth();
-    camera.camera.layers.set(0);
-    renderer.render(scene,camera.camera);
-
-    var deltaTime = clock.getDelta();
-    camera.move(deltaTime);
-    
-    //
-    moveCelestialBodies(celestialBodies, deltaTime*10000000);
-    velocityArrow.setDirection(earth.velocity.clone());
-    velocityArrow.setLength(5);
-    velocityArrow.position.copy(new THREE.Vector3(earth.position.x/15e9,earth.position.y/15e9,earth.position.z/15e9));
-    //
-    stats.end();
-    
-}
-
-onNewFrame();
-
-function moveCelestialBodies(bodies, deltaTime) {
-    bodies.forEach(sourceBody => {
-        bodies.forEach(targetBody => {
-            if(targetBody == sourceBody) return;
-            var F = (G*sourceBody.mass*targetBody.mass)/Math.pow(targetBody.position.distanceTo(sourceBody.position),2);
-            sourceBody.velocity.add(new THREE.Vector3().subVectors(targetBody.position,sourceBody.position).normalize().multiplyScalar((F/sourceBody.mass)*deltaTime));
-            });
-    });
-
-    bodies.forEach(body => {
-        body.position.add(body.velocity.clone().multiplyScalar(deltaTime));
-        body.draw();
-    });
-}*/

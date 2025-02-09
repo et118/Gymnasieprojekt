@@ -17,6 +17,9 @@ export class Camera {
         //Hijacking zooming from OrbitControls. [et118] on changed places
         this.lastScale = 1;
         this.orbitControls.enablePan = false;
+        addEventListener("wheel", (event) => { //Small fix for using mouse scroll wheel instead of touchpad
+            this.desiredDistance *= event.deltaY == 100 ? 1.05 : 0.95;
+        })
     }
 
     setTarget(celestialBody) {

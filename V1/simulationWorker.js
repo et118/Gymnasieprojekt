@@ -11,7 +11,7 @@ onmessage = (e) => {
     if(type == 0) {
         bodies = e.data[1];
     } else if(type == 1){
-        postMessage(bodies);
+        postMessage([averageTimestep,bodies]); //Send back bodies, and current simulation metrics
     } else if(type == 2) {
         maximumTimestep = e.data[1];
     } else if(type == 3) {
@@ -20,14 +20,14 @@ onmessage = (e) => {
 };
 
 function distanceBetween(v1, v2) {
-    var dx = v1.x - v2.x;
-    var dy = v1.y - v2.y;
-    var dz = v1.z - v2.z;
+    let dx = v1.x - v2.x;
+    let dy = v1.y - v2.y;
+    let dz = v1.z - v2.z;
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 function vectorAdd(v1, v2) {
-    var out = {x:0,y:0,z:0};
+    let out = {x:0,y:0,z:0};
     out.x = v1.x + v2.x;
     out.y = v1.y + v2.y;
     out.z = v1.z + v2.z;
@@ -35,22 +35,24 @@ function vectorAdd(v1, v2) {
 }
 
 function vectorMultiply(v1, x) {
-    var out = {x:0,y:0,z:0};
+    let out = {x:0,y:0,z:0};
     out.x = v1.x * x;
     out.y = v1.y * x;
     out.z = v1.z * x;
     return out;
 }
 
-var counter = 0;
-var time = 0;
-var channel = new MessageChannel();
+let counter = 0;
+let time = 0;
+let averageTimestep = 0;
+let channel = new MessageChannel();
 
 function process() {
 
     let deltaTime = clock.getDelta();
     time += deltaTime;
     counter += 1;
+    averageTimestep = deltaTime; //TODO: smooth out to become an actual average
     if(time >= 1) {
         //console.log("TargetSpeed: " + timeFactor + "x    CPU Speed: " + ((maximumTimestep / (time / counter)) > 1 ? timeFactor + "x " + Math.round((maximumTimestep / (time / counter))*100) + "% simulation quality" : (maximumTimestep / (time / counter)) * timeFactor + "x"));
         counter = 0;

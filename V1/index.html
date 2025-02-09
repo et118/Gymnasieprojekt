@@ -31,7 +31,6 @@
 
 			.children {
 				padding-left:20px;
-				/*overflow-y:scroll;*/
 			}
 
 			#timeFactorLabel > button {
@@ -92,20 +91,22 @@
 			let pin = document.getElementById("timeFactorPin");
 			let pos1 = 0, pos3 = 0;
 			pin.onmousedown = function (e) {
-				e = e || window.event;
 				e.preventDefault();
-				pos3 = e.clientX;
+
+				let container = pin.parentElement;
+				let containerRect = container.getBoundingClientRect();
+				let pinStartLeft = pin.offsetLeft;
+				let startX = e.clientX;
+
 				document.onmouseup = function (e) {
 					document.onmouseup = null;
 					document.onmousemove = null;
 				}
 				document.onmousemove = function (e) {
-					e = e || window.event;
 					e.preventDefault();
-					pos1 = pos3 - e.clientX;
-					pos3 = e.clientX;
+					let deltaX = e.clientX - startX
+					let offset = pinStartLeft + deltaX;
 					
-					let offset = e.clientX;
 					if (offset < 25) offset = 25;
 					if (offset > 245) offset = 245;
 					pin.style.left = (offset) + "px";
