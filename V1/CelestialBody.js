@@ -22,6 +22,7 @@ export class CelestialBody {
         this.trailBuffer = new THREE.BufferGeometry();
         this.trailMesh = new THREE.Line(this.trailBuffer, new THREE.LineBasicMaterial({color:0xffffff, side:THREE.DoubleSide, linewidth: 5}))
         this.lastTrailPoints = 0;
+        this.alwaysShowTrail = false;
 
 
         this.mesh.name = name;
@@ -82,7 +83,8 @@ export class CelestialBody {
             //console.log(output);
         }
         this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
-        if(this.majorCelestial || this.selected) {
+        if(this.majorCelestial || this.selected || this.alwaysShowTrail) {
+            
             this.trailMesh.visible = true;
             this.trailBuffer.setFromPoints(this.trailPoints);
             this.trailMesh.updateWorldMatrix();
@@ -98,11 +100,6 @@ export class CelestialBody {
             var scale = this.mesh.position.distanceTo(camera.camera.position) / 1000;
             this.ringMesh.scale.set(scale, scale, scale);
             this.ringMesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
-            /*if(!this.majorCelestial) {
-                this.ringMesh.material.color.setHex(0x0000ff);
-            } else {
-                this.ringMesh.material.color.setHex(0xffff00);
-            }*/
             this.selectMesh.position.set(this.ringMesh.position.x, this.ringMesh.position.y, this.ringMesh.position.z);
             this.selectMesh.scale.set(scale, scale, scale);
             this.selectMesh.setRotationFromQuaternion(camera.camera.quaternion);    

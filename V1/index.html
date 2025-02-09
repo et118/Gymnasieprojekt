@@ -43,13 +43,14 @@
 				background-color: black;
 				border: 1px solid grey;
 				margin-bottom:20px;
+				padding:0;
 			}
 
 			#timeFactorLimitBar {
 				background-color: lightgreen;
 				height:100%;
 				width:100%;
-				margin-left:-4px;
+				margin-left:0px;
 				overflow:hidden;
 				position:relative;
 			}
@@ -78,17 +79,26 @@
 				margin-left:-38px;
 				line-height:50px;
 			}
+
+			.controller.number.hasSlider > .widget > input {
+				width:0px !important;
+				padding:0;
+				min-width: 0;
+			}
+
+			.controller.number.hasSlider > .widget > .slider {
+				width:75px;
+			}
+
+			#MaximumTimeStep {
+				width:20px;
+			}
 		</style>
 	</head>
 	<body>
 		<div id="celestialsDiv"></div>
 		<div id="controlPanelDiv"></div>
 		<div class="controller name" id="timeFactorLabel">
-			<span>Time Factor</span>
-			<button>x0</button>
-			<button>x1</button>
-			<button>day/s</button>
-			<button>year/s</button>
 		</div>
 		<div class="controller" id="timeFactorBar">
 			<div id="timeFactorLimitBar">
@@ -100,6 +110,9 @@
 				<span>5.3day/s</span>
 			</div>
 			
+		</div>
+		<div id="MaximumTimeStep">
+			<span>1.0sec</span>
 		</div>
 		<script type="module" src="/main.js"></script>
 		<script>

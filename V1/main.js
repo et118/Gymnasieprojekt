@@ -11,6 +11,13 @@ import * as SolarSystem from './SolarSystem.js'
     https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation    //For the asteroid fields
     https://en.wikipedia.org/wiki/Fast_multipole_method
 */
+/*
+Deadline task list:
+1. Make orbits not rely on framerate
+2. Pre-compute orbits
+3. Refactor all code
+*/
+
 //Global Variables
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
@@ -176,17 +183,21 @@ guiControlPanel.add({enableMoons:true},"enableMoons").name("Enable Moons").liste
         sendBodiesToWorker(bodies, simulationWorker);
     }
 });
+guiControlPanel.add({enableOrbits:true},"enableOrbits").name("Enable Moon Orbits").setValue(false).listen().onChange(value => {
+    bodies.forEach(body => {
+        if(!body.majorCelestial) {
+            body.alwaysShowTrail = value;
+        }
+    })
+});
 guiControlPanel.add({maximumTimeStep:1},"maximumTimeStep",1,10000, 1).name("Maximum Time Step").listen().onChange(value => {
     maximumTimeStep = value;
     simulationWorker.postMessage([2, maximumTimeStep]);
-    setTimeout(() => {
-        document.getElementsByClassName("controller number hasSlider")[0].getElementsByClassName("widget")[0].getElementsByTagName("input")[0].value = timeToUnits(maximumTimeStep).replace("/s","");
-    },10);
+    document.getElementById("MaximumTimeStep").getElementsByTagName("span")[0].innerText = timeToUnits(maximumTimeStep).replace("/s","");
     });
 guiControlPanel.$children.insertBefore(document.getElementById("timeFactorLabel"), guiControlPanel.$children.childNodes[0]);
 guiControlPanel.$children.insertBefore(document.getElementById("timeFactorBar"), guiControlPanel.$children.childNodes[0]);
-
-
+document.getElementsByClassName("controller number hasSlider")[0].getElementsByClassName("widget")[0].getElementsByTagName("input")[0].insertAdjacentElement("afterend",document.getElementById("MaximumTimeStep"))
 //Time Factor Controller
 //simulationTimestep = the milliseconds that each simulation step takes
 //maximumTimestep = the cap that each frame has
@@ -301,6 +312,7 @@ window.addEventListener("pointerup", (event) => { //200ms maximum and 10px dista
                     }
                 }
             }
+            console.log(targetCelestial.alwaysShowTrail);
             targetCelestial.selected = true;
             options.groupID = targetCelestial.groupID;
             options.majorCelestial = targetCelestial.majorCelestial;
