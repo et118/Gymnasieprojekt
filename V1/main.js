@@ -71,6 +71,7 @@ function sendBodiesToWorker(bodies, worker) {
 //Setting up simulation thread and giving it data
 const simulationWorker = new Worker("simulationWorker.js", {type:"module"});
 let bodies = SolarSystem.createCelestialBodies(scene);
+bodies = bodies.concat(SolarSystem.createMoonBodies(scene));
 sendBodiesToWorker(bodies, simulationWorker);
 simulationWorker.postMessage([2, maximumTimeStep]);
 simulationWorker.postMessage([3, targetTimeFactor]);

@@ -19,8 +19,8 @@ export function createCelestialBodies(scene) {
     ];
     //From presimulated orbits
     
-    const moons = getMoonBodies();
-    bodies = bodies.concat(moons);
+    //const moons = getMoonBodies();
+    //bodies = bodies.concat(moons);
     bodies.forEach(body => {
         body.addToScene(scene);
     });
