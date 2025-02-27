@@ -54,6 +54,7 @@ export class CelestialBody {
     }
 
     removeFromScene(scene) {
+        console.log("Removed");
         scene.remove(this.mesh);
         scene.remove(this.ringMesh);
         scene.remove(this.trailMesh);

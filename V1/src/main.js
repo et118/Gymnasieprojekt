@@ -1,11 +1,7 @@
 import * as THREE from 'three';
-import { CelestialBody } from './CelestialBody';
 import { GUI } from "lil-gui";
-import { Camera } from './Camera';
+import { Camera } from './Camera.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { RenderPass } from 'three/examples/jsm/Addons.js';
-import { AfterimagePass } from 'three/examples/jsm/Addons.js';
-import { EffectComposer } from 'three/examples/jsm/Addons.js';
 import * as SolarSystem from './SolarSystem.js'
 /*
     https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation    //For the asteroid fields
@@ -16,18 +12,17 @@ Deadline task list:
 1. Make orbits not rely on framerate
 2. Pre-compute orbits
 3. Refactor all code
+4. Show current date
 */
 
 //Global Variables
 const scene = new THREE.Scene();
-const renderer = new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+const renderer = new THREE.WebGLRenderer({antialias:true});
 const perspectiveCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 50000 );
 const camera = new Camera(perspectiveCamera, renderer);
-const renderScenePass = new RenderPass(scene,camera.camera);
 const guiStats = new GUI();
 const guiCelestials = new GUI();
 const guiControlPanel = new GUI();
-const trailComposer = new EffectComposer(renderer);
 const clock = new THREE.Clock();
 const stats = new Stats();
 const raycaster = new THREE.Raycaster();
@@ -41,7 +36,6 @@ function initThreeJS() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.autoClear = false;
     renderer.clear();
-    trailComposer.addPass(renderScenePass);
     stats.showPanel(0);
     perspectiveCamera.position.z = 5000;
     perspectiveCamera.position.x = 1000;
@@ -69,8 +63,9 @@ function sendBodiesToWorker(bodies, worker) {
 }
 
 //Setting up simulation thread and giving it data
-const simulationWorker = new Worker("simulationWorker.js", {type:"module"});
+const simulationWorker = new Worker(new URL("./simulationWorker.js", import.meta.url), {type:"module"});
 let bodies = SolarSystem.createCelestialBodies(scene);
+bodies = bodies.concat(SolarSystem.createMoonBodies(scene));
 sendBodiesToWorker(bodies, simulationWorker);
 simulationWorker.postMessage([2, maximumTimeStep]);
 simulationWorker.postMessage([3, targetTimeFactor]);
@@ -176,10 +171,13 @@ guiControlPanel.add({enableMoons:true},"enableMoons").name("Enable Moons").liste
         bodies = bodies.concat(SolarSystem.createMoonBodies(scene));
         sendBodiesToWorker(bodies, simulationWorker);
     } else {
+        console.log(bodies.length);
         bodies.forEach(body => {
             body.removeFromScene(scene);
         });
         bodies = SolarSystem.createCelestialBodies(scene);
+        
+        console.log(bodies.length);
         sendBodiesToWorker(bodies, simulationWorker);
     }
 });
@@ -354,7 +352,6 @@ function render() {
     simulationWorker.postMessage([1]);
     renderer.clear();
     renderer.clearDepth();
-    perspectiveCamera.layers.set(0);
     renderer.render(scene,perspectiveCamera);
 
     stats.end();

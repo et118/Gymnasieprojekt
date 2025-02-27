@@ -1,7 +1,7 @@
 import { CelestialBody } from "./CelestialBody";
 import * as THREE from 'three';
 
-//Taken at timestamp 2024-11-04 00:00
+//Taken at timestamp 2024-01-01 00:00
 export function createCelestialBodies(scene) {
     let bodies = [
         new CelestialBody(-1.191989205285392E+09, -4.347654370292560E+08, 3.146124454779254E+07, 695700E+03, 1988410E+24, 8.441016159655652E+00, -1.221912155158748E+01, -7.918737699351246E-02, 0xf0e816, "Sun", 0, true),
@@ -19,8 +19,8 @@ export function createCelestialBodies(scene) {
     ];
     //From presimulated orbits
     
-    const moons = getMoonBodies();
-    bodies = bodies.concat(moons);
+    //const moons = getMoonBodies();
+    //bodies = bodies.concat(moons);
     bodies.forEach(body => {
         body.addToScene(scene);
     });

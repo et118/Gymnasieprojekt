@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 //import { OrbitControls } from 'three/examples/jsm/Addons.js';
-import { OrbitControls, sharedVariables } from './custom-addons/OrbitControls';
+import { OrbitControls, sharedVariables } from './lib/OrbitControls';
 //import { OrbitControls, scale } from 'three/addons/controls/OrbitControls.js';
 
 export class Camera {

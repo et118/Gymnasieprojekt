@@ -48,43 +48,46 @@ let averageTimestep = 0;
 let channel = new MessageChannel();
 
 function process() {
-
     let deltaTime = clock.getDelta();
     if(deltaTime == 0) {
         channel.port2.postMessage(null);
         return;
     }
-    time.push(deltaTime);
 
+    //Statistics for the GUI
+    time.push(deltaTime);
     counter += 1;
     if(time.reduce((p,c)=>p+c,0) >= 0.1) {
         averageTimestep = time.sort((a,b)=>a-b)[Math.floor(time.length/2)];
-        //console.log("TargetSpeed: " + timeFactor + "x    CPU Speed: " + ((maximumTimestep / (time / counter)) > 1 ? timeFactor + "x " + Math.round((maximumTimestep / (time / counter))*100) + "% simulation quality" : (maximumTimestep / (time / counter)) * timeFactor + "x"));
         counter = 0;
         time = [];
-        //console.log(deltaTime * targetTimeFactor > maximumTimestep ? maximumTimestep : deltaTime * targetTimeFactor);
     }
     
     deltaTime *= targetTimeFactor;
     if(deltaTime > maximumTimestep) deltaTime = maximumTimestep; //To prevent time leaps, for example when tabbing out sometimes or when overloaded
-    //console.log(deltaTime);
+
+    //Apply new velocities
     for(let i = 0; i < bodies.length - 1; i++) {
         for(let j = i + 1; j < bodies.length; j++) {
             let sourceBody = bodies[j];
             let targetBody = bodies[i];
-            if(!targetBody.majorCelestial && targetBody.groupID != sourceBody.groupID) continue;
+            if(!targetBody.majorCelestial && targetBody.groupID != sourceBody.groupID) continue; //Exclude moons from affecting planets other than their own
+            //Calculate the force and direction of said force between the bodies
             let F = (G*sourceBody.mass*targetBody.mass)/Math.pow(distanceBetween(targetBody.position,sourceBody.position),2);
             let direction = new THREE.Vector3().subVectors(targetBody.position,sourceBody.position).normalize();
+            //Apply new velocities while taking deltaTime into consideration
             sourceBody.velocity = vectorAdd(sourceBody.velocity,direction.multiplyScalar((F/sourceBody.mass)*deltaTime));
             targetBody.velocity = vectorAdd(targetBody.velocity,direction.multiplyScalar((F/targetBody.mass)*deltaTime*-1));
         };
     }
-
-    bodies.forEach(body => {
+    //Step all bodies forward
+    for(let i = 0; i < bodies.length; i++) {
+        let body = bodies[i];
         body.position = vectorAdd(body.position,vectorMultiply(body.velocity,deltaTime));
-    });
-    //setTimeout(process,0);
-    channel.port2.postMessage(null);// TODO: Add back for simulation quality but increased CPU usage
+    }
+
+    //setTimeout(process,0); //Add for slower simulation speed
+    channel.port2.postMessage(null);//Add for faster simulation speed but increased CPU usage
 }
 // https://stackoverflow.com/questions/18826570/settimeout0-vs-window-postmessage-vs-messageport-postmessage 
 channel.port1.onmessage = function (ev) {

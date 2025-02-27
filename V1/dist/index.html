@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			#celestialsDiv{
+				position:absolute;
+				bottom:0%;
+				left:20px;
+			}
+			#controlPanelDiv {
+				position:absolute;
+				bottom:0%;
+				right:0%;
+			}
+
+			#guiCelestials{
+				position:relative;
+			}
+
+			#guiControlPanel {
+				position:relative;
+			}
+
+			#guiCelestials > .children {
+				padding-left:0px !important;
+				max-height: 70vh;
+			}
+
+			.children {
+				padding-left:20px;
+			}
+
+			#timeFactorLabel > button {
+				width:30px;
+				margin-left:10px;
+			}
+
+			#timeFactorBar {
+				height:20px;
+				background-color: black;
+				border: 1px solid grey;
+				margin-bottom:20px;
+				padding:0;
+			}
+
+			#timeFactorLimitBar {
+				background-color: lightgreen;
+				height:100%;
+				width:100%;
+				margin-left:0px;
+				overflow:hidden;
+				position:relative;
+			}
+
+			#timeFactorPin {
+				border-left: 4px solid red;
+				height:18px;
+				width:10px;
+				position:absolute;
+				margin-left:calc(-4px);
+				cursor:move;
+				
+			}
+
+			#maxTimePin {
+				color:black;
+				margin-left:2px;
+				position:absolute;
+				right:5px;
+				top:2px;
+			}
+
+			#timeFactorPin > span {
+				color:white;
+				position: relative;
+				margin-left:-38px;
+				line-height:50px;
+			}
+
+			.controller.number.hasSlider > .widget > input {
+				width:0px !important;
+				padding:0;
+				min-width: 0;
+			}
+
+			.controller.number.hasSlider > .widget > .slider {
+				width:75px;
+			}
+
+			#MaximumTimeStep {
+				width:20px;
+			}
+		</style>
+		<script type="module" crossorigin src="./assets/index-DgQGXxUK.js"></script>
+	</head>
+	<body>
+		<div id="celestialsDiv"></div>
+		<div id="controlPanelDiv"></div>
+		<div class="controller name" id="timeFactorLabel">
+		</div>
+		<div class="controller" id="timeFactorBar">
+			<div id="timeFactorLimitBar">
+				<div id="maxTimePin">
+					<span>5.3day/s</span>
+				</div>
+			</div>
+			<div id="timeFactorPin">
+				<span>5.3day/s</span>
+			</div>
+			
+		</div>
+		<div id="MaximumTimeStep">
+			<span>1.0sec</span>
+		</div>
+		<script>
+			let pin = document.getElementById("timeFactorPin");
+			pin.style.left = "25px";
+			let pos1 = 0, pos3 = 0;
+			pin.onmousedown = function (e) {
+				e.preventDefault();
+
+				let container = pin.parentElement;
+				let containerRect = container.getBoundingClientRect();
+				let pinStartLeft = pin.offsetLeft;
+				let startX = e.clientX;
+
+				document.onmouseup = function (e) {
+					document.onmouseup = null;
+					document.onmousemove = null;
+				}
+				document.onmousemove = function (e) {
+					e.preventDefault();
+					let deltaX = e.clientX - startX
+					let offset = pinStartLeft + deltaX;
+					
+					if (offset < 25) offset = 25;
+					if (offset > 245) offset = 245;
+					pin.style.left = (offset) + "px";
+				}
+			}
+		</script>
+	</body>
+</html>
