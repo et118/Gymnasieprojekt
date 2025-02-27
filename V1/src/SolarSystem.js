@@ -37,7 +37,7 @@ export function createMoonBodies(scene) {
 
 function getMoonBodies() {
     const request = new XMLHttpRequest();
-    request.open("GET", "/moons.json", false);
+    request.open("GET", "./moons.json", false);
     request.send();
     const data = JSON.parse(request.responseText);
     
