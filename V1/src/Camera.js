@@ -18,6 +18,13 @@ export class Camera {
         this.lastScale = 1;
         this.orbitControls.enablePan = false;
         addEventListener("wheel", (event) => { //Small fix for using mouse scroll wheel instead of touchpad
+            let guiElements = document.querySelectorAll(".lil-gui.root.allow-touch-styles.autoPlace");
+            console.log(guiElements);
+            for(let guiElement of guiElements) {
+                if(guiElement.contains(event.target)) {
+                    return;
+                }
+            }
             this.desiredDistance *= event.deltaY == 100 ? 1.05 : 0.95;
         })
     }

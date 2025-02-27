@@ -13,7 +13,7 @@
 			#controlPanelDiv {
 				position:absolute;
 				bottom:0%;
-				right:0%;
+				right:20px;
 			}
 
 			#guiCelestials{
@@ -118,29 +118,36 @@
 		<script>
 			let pin = document.getElementById("timeFactorPin");
 			pin.style.left = "25px";
-			let pos1 = 0, pos3 = 0;
-			pin.onmousedown = function (e) {
+
+			function startDrag(e) {
 				e.preventDefault();
-
-				let container = pin.parentElement;
-				let containerRect = container.getBoundingClientRect();
+				
+				let isTouch = e.type.startsWith("touch");
+				let startX = isTouch ? e.touches[0].clientX : e.clientX;
 				let pinStartLeft = pin.offsetLeft;
-				let startX = e.clientX;
-
-				document.onmouseup = function (e) {
-					document.onmouseup = null;
-					document.onmousemove = null;
-				}
-				document.onmousemove = function (e) {
+				
+				function move(e) {
 					e.preventDefault();
-					let deltaX = e.clientX - startX
+					let clientX = isTouch ? e.touches[0].clientX : e.clientX;
+					let deltaX = clientX - startX;
 					let offset = pinStartLeft + deltaX;
 					
 					if (offset < 25) offset = 25;
 					if (offset > 245) offset = 245;
-					pin.style.left = (offset) + "px";
+					pin.style.left = offset + "px";
 				}
+
+				function stopDrag() {
+					document.removeEventListener(isTouch ? "touchmove" : "mousemove", move);
+					document.removeEventListener(isTouch ? "touchend" : "mouseup", stopDrag);
+				}
+
+				document.addEventListener(isTouch ? "touchmove" : "mousemove", move);
+				document.addEventListener(isTouch ? "touchend" : "mouseup", stopDrag);
 			}
+
+			pin.addEventListener("mousedown", startDrag);
+			pin.addEventListener("touchstart", startDrag);
 		</script>
 	</body>
 </html>

@@ -4,7 +4,7 @@ const clock = new THREE.Clock();
 let targetTimeFactor = 1;
 let maximumTimestep = 1; //1 second per frame
 let bodies = []
-
+//TODO: https://sv.wikipedia.org/wiki/Runge%E2%80%93Kuttametoden 
 onmessage = (e) => {
     const type = e.data[0]; //0 == set bodies,     1 == get bodies
                             //2 == setMaxTimestep, 3 == timeFactor
