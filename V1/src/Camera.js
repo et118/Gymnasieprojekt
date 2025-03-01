@@ -19,13 +19,13 @@ export class Camera {
         this.orbitControls.enablePan = false;
         addEventListener("wheel", (event) => { //Small fix for using mouse scroll wheel instead of touchpad
             let guiElements = document.querySelectorAll(".lil-gui.root.allow-touch-styles.autoPlace");
-            console.log(guiElements);
             for(let guiElement of guiElements) {
                 if(guiElement.contains(event.target)) {
                     return;
                 }
             }
-            this.desiredDistance *= event.deltaY == 100 ? 1.05 : 0.95;
+            console.log(event.deltaY);
+            this.desiredDistance *= event.deltaY > 0 ? 1.05 : 0.95;
         })
     }
 
@@ -42,19 +42,14 @@ export class Camera {
         if(this.target) { //Thank you so much https://www.reddit.com/r/threejs/comments/1chmjm5/making_orbitcontrols_lock_onto_an_object/?rdt=61444 
             let worldPos = new THREE.Vector3();
             this.target.mesh.getWorldPosition(worldPos);
-            //worldPos.add(this.cameraVelocity.clone().multiplyScalar(-1));
             const futureTargetPos = worldPos.clone().add(this.cameraVelocity.clone().multiplyScalar(deltaTime));
 
-            let direction = new THREE.Vector3();//new THREE.Vector3().subVectors(this.camera.position, futureTargetPos).normalize();
+            let direction = new THREE.Vector3();
             this.camera.getWorldDirection(direction);
 
-            //let velocityTowardsCamera = this.cameraVelocity.dot(new THREE.Vector3().subVectors(this.target.mesh.position,this.camera.position).normalize());
+            let targetPosition = futureTargetPos.clone().add(direction.multiplyScalar(-this.desiredDistance));
             
-            let distance = this.desiredDistance;//this.camera.position.distanceTo(this.target.mesh.position);//When moving straight away from camera, the zoom distance increases. Create second camera like the weird site said.//Maybe save distance last frame and do something
-            //let targetPosition = new THREE.Vector3().copy(worldPos).add(direction.multiplyScalar(-distance));
-            let targetPosition = futureTargetPos.clone().add(direction.multiplyScalar(-distance));
-            
-            let speed = distance > 1 ? 0.25 : 0.25 + Math.min(0.75,1-distance);
+            let speed = this.desiredDistance > 1 ? 0.25 : 0.25 + Math.min(0.75,1-this.desiredDistance);
             
             this.camera.position.lerp(targetPosition,speed);
             this.orbitControls.target.lerp(worldPos,speed);

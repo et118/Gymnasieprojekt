@@ -255,9 +255,7 @@ function timeToUnits(time) {
 function updateTimeFactorController() {
     let currentSpeed = (maximumTimeStep / (averageTimestep));
     document.getElementById("timeFactorLimitBar").style.width = 100 * ((Math.log10(currentSpeed)) / (Math.log10(31556926))) + "%";
-
     document.getElementById("maxTimePin").getElementsByTagName("span")[0].textContent = timeToUnits(currentSpeed);
-    //console.log(currentSpeed);
 
     //targetTimeFactor = 0 - 220
     let value = document.getElementById("timeFactorPin").style.left.split("px")[0] - 25;

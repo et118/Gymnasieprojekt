@@ -67,22 +67,26 @@ export class CelestialBody {
             this.ringMesh.material.color.setHex(this.majorCelestial ? 0xffff00 : 0x0000ff);
         }
         this.trailPoints.pop();
-        let angleBetweenPoints = this.trailPoints[this.trailPoints.length-1].clone().sub(this.trailPoints[this.trailPoints.length-2]).normalize().angleTo(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9).clone().sub(this.trailPoints[this.trailPoints.length-1]).normalize())*180/Math.PI;
-        if(angleBetweenPoints > 1 && this.trailPoints[this.trailPoints.length-1].clone().sub(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9)).length() != 0) {
-            this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
+        let firstPoint = this.trailPoints[this.trailPoints.length-1].clone();
+        let secondPoint = this.trailPoints[this.trailPoints.length-2].clone();
+        let currentPosition = new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9);
+        
+        let angleBetweenPoints = firstPoint.clone().sub(secondPoint).normalize().angleTo(currentPosition.clone().sub(firstPoint).normalize())*180/Math.PI;
+        if(angleBetweenPoints > 1 && firstPoint.clone().sub(currentPosition).length() != 0) {
+            this.trailPoints.push(currentPosition);
         }
-        if(this.name == "Pluto" && this.trailPoints.length != this.lastTrailPoints) {
+        /*if(this.name == "Pluto" && this.trailPoints.length != this.lastTrailPoints) {
             //console.log(this.trailPoints.length);
             this.lastTrailPoints = this.trailPoints.length;
-        }
-        if(this.trailPoints.length == 360 && this.majorCelestial){// && (this.name == "Jupiter" || this.name == "Saturn" || this.name == "Uranus" || this.name == "Neptune" || this.name == "Pluto")) {
+        }*/
+        /*if(this.trailPoints.length == 360 && this.majorCelestial){// && (this.name == "Jupiter" || this.name == "Saturn" || this.name == "Uranus" || this.name == "Neptune" || this.name == "Pluto")) {
             let output = "\"" + this.name + "\":[";
             this.trailPoints.forEach((point) => {
                 output += "{\"x\":"+point.x+",\"y\":" + point.y + ",\"z\":" + point.z + "},";
             });
             output += "]";
             //console.log(output);
-        }
+        }*/
         this.trailPoints.push(new THREE.Vector3(this.position.x/1e9,this.position.z/1e9,this.position.y/1e9));
         if(this.majorCelestial || this.selected || this.alwaysShowTrail) {
             
